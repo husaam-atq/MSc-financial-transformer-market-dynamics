@@ -1,0 +1,45 @@
+name: Public repository CI
+
+"on":
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  validate:
+    name: Python 3.11 validation
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python 3.11
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: pip
+          cache-dependency-path: pyproject.toml
+
+      - name: Install test dependencies
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install --index-url https://download.pytorch.org/whl/cpu "torch>=2.9"
+          python -m pip install -e ".[dev]"
+
+      - name: Run Ruff
+        run: python -m ruff check .
+
+      - name: Run tests
+        run: python -m pytest
+
+      - name: Check public hygiene
+        run: python scripts/check_public_hygiene.py
+
+      - name: Compile Python sources
+        run: python -m compileall -q src scripts tests
