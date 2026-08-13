@@ -184,13 +184,13 @@ return, and $\widehat{\sigma}_{20}(t)$ is trailing 20-session volatility.
 The positive-target rule is:
 
 $$
-Y_t = \mathbb{1}\!\left\{
+Y_t = \mathbf{1}\!\left[
 R_{10}(t) \leq -0.05
 \;\lor\;
 D_{10}(t) \leq -0.07
 \;\lor\;
 RV_{10}(t) \geq 2\,\widehat{\sigma}_{20}(t)\sqrt{10}
-\right\}.
+\right].
 $$
 
 In plain English, the target is positive if **any** condition holds:
