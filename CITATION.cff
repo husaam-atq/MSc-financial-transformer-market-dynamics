@@ -1,0 +1,19 @@
+cff-version: 1.2.0
+message: "If you use this repository, please cite the dissertation and public research release."
+title: "Interpretable Transformer Models for Financial Time Series Forecasting: Discovering Emergent Market Dynamics"
+type: software
+authors:
+  - family-names: "Ateeq"
+    given-names: "Husaam"
+date-released: "2026-08-13"
+version: "dissertation-final"
+repository-code: "https://github.com/husaam-atq/MSc-financial-transformer-market-dynamics"
+abstract: >-
+  Leakage-aware multi-asset forecasting software and evidence for an MSc Data
+  Science dissertation at Queen Mary University of London.
+keywords:
+  - financial time series
+  - machine learning
+  - model evaluation
+  - PyTorch
+  - transformers

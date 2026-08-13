@@ -4,24 +4,39 @@
 
 [![Python 3.11+](https://img.shields.io/badge/Python-3.11%2B-3776AB?logo=python&logoColor=white)](https://www.python.org/)
 [![PyTorch](https://img.shields.io/badge/PyTorch-2.9%2B-EE4C2C?logo=pytorch&logoColor=white)](https://pytorch.org/)
-[![Research status](https://img.shields.io/badge/research-frozen_dissertation_evidence-2F6F6D)](#project-status)
+[![Research status](https://img.shields.io/badge/research-frozen-2F6F6D)](#project-status)
+[![Public repository CI](https://github.com/husaam-atq/MSc-financial-transformer-market-dynamics/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/husaam-atq/MSc-financial-transformer-market-dynamics/actions/workflows/ci.yml)
 
 A leakage-aware, multi-asset financial forecasting study that asks whether strong
 pooled Transformer performance reflects changing market conditions or persistent
 differences between assets.
 
+> [!IMPORTANT]
 > **Central finding:** the corrected Transformer achieved pooled ROC-AUC
 > **0.789814**, but a training-only static asset prior achieved **0.823906** and
 > the Transformer's pair-weighted within-asset ROC-AUC was **0.491638**.
-> Strong pooled ranking did not establish robust within-asset timing.
+> Strong pooled ranking did not establish robust within-asset timing. The pooled
+> AUC should not be interpreted as evidence of within-asset timing skill.
 
 This is a supervised forecasting and model-evaluation project. It is not a trading
 system, portfolio strategy, or deployment claim.
+
+**Choose your path:** [Examiner: results and methodology](#results-at-a-glance) |
+[Researcher: evidence and simulation](#falsification-suite) |
+[Developer: setup and tests](#quick-start) |
+[Dissertation: eight-page PDF](reports/paper/draft_dissertation_paper_v4.pdf)
+
+**Key links:** [Read the dissertation PDF](reports/paper/draft_dissertation_paper_v4.pdf) |
+[View its Markdown source](reports/paper/draft_dissertation_paper_v4.md) |
+[Reproduce the evidence](#reproduction) | [Start locally](#quick-start) |
+[See headline results](#results-at-a-glance) |
+[Browse the frozen release tag](https://github.com/husaam-atq/MSc-financial-transformer-market-dynamics/tree/dissertation-final)
 
 ## Contents
 
 - [Core question](#core-question)
 - [Results at a glance](#results-at-a-glance)
+- [Research takeaways](#research-takeaways)
 - [Research decision path](#research-decision-path)
 - [Data and task](#data-and-task)
 - [Features and model](#features-and-model)
@@ -86,6 +101,21 @@ Ranking metrics use raw ensemble scores. Brier score, log loss and thresholded
 metrics use validation-selected calibrated probabilities. These score types are
 not mixed.
 
+![Horizontal comparison showing pooled and within-asset ROC-AUC for the static asset prior, Transformer and MLP](assets/readme/headline_results.svg)
+
+*Pooled discrimination versus within-asset discrimination. All values use the
+same 0-1 AUC scale; the MLP did not pass the ordered-temporal-skill gate.*
+
+## Research takeaways
+
+1. A pooled AUC near 0.79 initially looked strong, but the static asset prior
+   reached 0.824 without any time-varying score.
+2. Conditioning evaluation within asset changed the interpretation: the
+   Transformer fell to approximately chance while the MLP retained modest
+   conditional association.
+3. Controlled simulation showed that the diagnostics distinguish static
+   heterogeneity from deliberately planted ordered temporal signal.
+
 ## Research decision path
 
 The project began as a forecasting study and became an investigation of what the
@@ -93,17 +123,17 @@ forecasting metric was actually measuring.
 
 ```mermaid
 flowchart TD
-    A["Train leakage-aware pooled Transformer"] --> B["Promising pooled ROC-AUC"]
-    B --> C["Compare training-only static priors"]
-    C --> D["Static asset prior is stronger"]
-    D --> E["Restrict evaluation to within-asset pairs"]
-    E --> F["Transformer within-asset AUC is near chance"]
-    F --> G["Test identity: remove, swap and probe"]
-    G --> H["Destroy order: reverse, permute and circularly shift"]
-    H --> I["Run bounded five-model comparison"]
-    I --> J["Validate diagnostics in 1,040 controlled simulations"]
-    J --> K["Attempt three bounded recovery designs"]
-    K --> L["Freeze methodological conclusion"]
+    A["Pooled Transformer"] --> B["Pooled AUC 0.790"]
+    B --> C["Static-prior benchmark"]
+    C --> D["Asset prior AUC 0.824"]
+    D --> E["Within-asset evaluation"]
+    E --> F["Transformer within AUC 0.492"]
+    F --> G["Identity diagnostics"]
+    G --> H["Order perturbations"]
+    H --> I["Five-model comparison"]
+    I --> J["1,040-run simulation"]
+    J --> K["Recovery tests"]
+    K --> L["Freeze conclusion"]
 ```
 
 Each step was introduced to test a specific alternative explanation. The later
@@ -130,22 +160,40 @@ The pipeline uses observed sessions within each asset. It does not forward-fill 
 weekends into the seven-day crypto calendar. Adjusted close is preferred for returns
 and targets; raw OHLC fields are retained for range, gap and intraday-style features.
 
-The raw provider files and processed panels are intentionally excluded from Git.
-Users must obtain data under the providers' current terms and should expect public
-APIs, revisions and symbol histories to change.
+> [!NOTE]
+> Raw market and provider data are not redistributed in this repository. Users
+> must obtain them under the providers' current terms and should expect public
+> APIs, revisions and symbol histories to change.
 
 ### Forecast origin and target
 
 At close `t`, the model receives the preceding 60 observed sessions, including
 session `t`. The binary target uses only the next ten observed sessions:
 
-```text
-R10(t)  = P(t+10) / P(t) - 1
-D10(t)  = min[P(t+k) / P(t) - 1], for k = 1, ..., 10
-RV10(t) = sqrt(sum(r(t+k)^2)), for k = 1, ..., 10
-```
+$$
+\begin{aligned}
+R_{10}(t) &= \frac{P_{t+10}}{P_t} - 1, \\
+D_{10}(t) &= \min_{1 \leq k \leq 10}\left(\frac{P_{t+k}}{P_t} - 1\right), \\
+RV_{10}(t) &= \sqrt{\sum_{k=1}^{10} r_{t+k}^{2}}.
+\end{aligned}
+$$
 
-The target is positive if **any** condition holds:
+Here, $P_t$ is adjusted close where available, $r_t$ is the one-session log
+return, and $\widehat{\sigma}_{20}(t)$ is trailing 20-session volatility.
+
+The positive-target rule is:
+
+$$
+Y_t = \mathbb{1}\!\left\{
+R_{10}(t) \leq -0.05
+\;\lor\;
+D_{10}(t) \leq -0.07
+\;\lor\;
+RV_{10}(t) \geq 2\,\widehat{\sigma}_{20}(t)\sqrt{10}
+\right\}.
+$$
+
+In plain English, the target is positive if **any** condition holds:
 
 - terminal return `R10(t) <= -5%`;
 - minimum path return `D10(t) <= -7%`; or
@@ -208,15 +256,12 @@ No family label or explicit missingness indicator enters the final Transformer.
 
 ```mermaid
 flowchart LR
-    A["60 observed sessions"] --> B["34 train-scaled numerical channels"]
-    C["Asset ID"] --> D["12-D learned embedding"]
-    B --> E["Concatenate to 46 channels"]
-    D --> E
-    E --> F["Projection + sinusoidal position"]
-    F --> G["2-layer Transformer encoder"]
-    G --> H["Temporal-attention pooling"]
-    H --> I["LayerNorm + logit"]
-    I --> J["Validation-selected calibration and threshold"]
+    A["60 sessions x 34 features"] --> C["46-channel input"]
+    B["12-D asset identity"] --> C
+    C --> D["Projection + position"]
+    D --> E["2-layer Transformer"]
+    E --> F["Attention pooling"]
+    F --> G["Risk score"]
 ```
 
 ## Leakage-aware evaluation
@@ -240,28 +285,30 @@ A direct interval audit found zero label intervals crossing the final boundaries
   not described as untouched confirmation.
 
 ```mermaid
-flowchart TD
-    A["Chronological panel"] --> B["Train"]
-    A --> C["18-date purge"]
-    C --> D["Validation"]
-    D --> E["1-date embargo + boundary purge"]
-    E --> F["Test"]
-    B --> G["Fit preprocessing and static priors"]
-    D --> H["Select stopping, calibration and threshold"]
-    F --> I["One fixed historical evaluation"]
-    I --> J["Pooled and grouped metrics"]
-    I --> K["Identity controls"]
-    I --> L["Temporal-order controls"]
+flowchart LR
+    A["Train"] --> B["18-date purge"]
+    B --> C["Validation"]
+    C --> D["Embargo + purge"]
+    D --> E["Test"]
+    A --> F["Fit preprocessing + priors"]
+    C --> G["Select stopping + calibration"]
+    E --> H["Fixed evaluation"]
+    H --> I["Grouped metrics + attacks"]
 ```
 
 ### Metric estimands
 
+<details>
+<summary><strong>Exact pair-weighted within-asset AUC definition</strong></summary>
+
 Pair-weighted within-asset AUC is the sum of each eligible asset's AUC weighted
 by `n_positive * n_negative`, divided by the total positive-negative pair count.
 
-where an asset is eligible only when it contains both classes. Macro AUC gives each
+An asset is eligible only when it contains both classes. Macro AUC gives each
 eligible asset equal weight. Additional reports use equal-asset, equal-date,
 equal-family, non-overlapping and event-level estimands.
+
+</details>
 
 ## Falsification suite
 
@@ -318,10 +365,10 @@ The 1,040-run simulation separates two mechanisms.
 
 ```mermaid
 flowchart LR
-    A["World A: heterogeneous asset priors, no dynamic signal"] --> B["Static prior pooled AUC rises"]
-    A --> C["Within-asset AUC remains near 0.5"]
-    D["World B: no prior heterogeneity, planted persistent dynamics"] --> E["Within-asset AUC rises"]
-    D --> F["Reversal and permutation reduce AUC"]
+    A["World A: static heterogeneity"] --> B["Pooled AUC rises"]
+    A --> C["Within AUC ~ 0.50"]
+    D["World B: planted dynamics"] --> E["Within AUC rises"]
+    D --> F["Order attacks hurt"]
 ```
 
 | Registered mechanism estimate | Value |
@@ -521,11 +568,13 @@ against the opened historical evidence.
 
 ### Reproducibility notes
 
+> [!TIP]
+> Prefer exact metric reconstruction from preserved prediction artefacts to
+> unnecessary model retraining.
+
 - Registered neural seeds are 7, 42 and 123.
 - PyTorch deterministic mode is enabled, but GPU kernels and library versions can
   still produce small floating-point differences.
-- Exact metric reconstruction from saved predictions is preferred to unnecessary
-  retraining.
 - The macro context has a current-vintage limitation.
 - Current-symbol universes do not constitute a full historical survivorship correction.
 - Public provider data can drift or disappear; the repository does not redistribute it.
@@ -542,6 +591,9 @@ The submission-frozen research paper is available in three forms:
 
 These three dissertation files are frozen as part of this release. Their content is
 not regenerated or revised by the repository-cleanup process.
+
+The original public research release remains available at the
+[`dissertation-final` tag](https://github.com/husaam-atq/MSc-financial-transformer-market-dynamics/tree/dissertation-final).
 
 Install the documentation extra and build to an ignored verification path:
 
