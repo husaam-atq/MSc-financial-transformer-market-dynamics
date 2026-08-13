@@ -1,0 +1,21 @@
+phase2c:
+  seeds: [7, 42, 123]
+  folds: 3
+  expanding: true
+  rolling_train_length: null
+  daily_lookbacks: [30, 60, 120, 250]
+  hourly_lookbacks: [48, 168, 720]
+  purge_by_horizon: true
+  embargo: 1
+  bootstrap:
+    iterations: 1000
+    confidence_level: 0.95
+    max_comparisons: 2500
+    max_comparisons_per_stratum: 150
+    sampling_seed: 42
+    block_length_rule: "sqrt_n"
+  calibration:
+    bins: 10
+  model_selection:
+    deep_models_per_task: 3
+    selection_split: "validation"

@@ -1,0 +1,101 @@
+ifddrp_within_asset_objective:
+  protocol_version: 1
+  frozen_before_result_inspection: true
+  evidence_class: historical_held_out_but_adaptive
+  target: target_stress_10d
+  horizon: 10
+  lookback: 60
+  fold: 3
+  purge: 18
+  embargo: 1
+  seeds: [7, 42, 123]
+  model_families: [mlp, transformer_encoder]
+  identity_input: none
+  objectives:
+    pooled_bce:
+      sampling: pooled_shuffle
+      pointwise_coefficient: 1.0
+      pairwise_coefficient: 0.0
+    equal_asset_bce:
+      sampling: equal_asset
+      pointwise_coefficient: 1.0
+      pairwise_coefficient: 0.0
+    within_asset_pairwise:
+      sampling: equal_asset
+      pointwise_coefficient: 0.0
+      pairwise_coefficient: 1.0
+    bce_plus_within_asset_pairwise:
+      sampling: equal_asset
+      pointwise_coefficient: 0.5
+      pairwise_coefficient: 0.5
+  pair_construction:
+    split: training_only
+    same_asset_only: true
+    positive_negative_pairs: true
+    generated_within_minibatch: true
+    maximum_pairs_per_asset_per_batch: 4096
+    explicit_frozen_registry: true
+    minimum_origin_separation_sessions: 10
+    outcome_windows_must_not_overlap: true
+    registry_seed: 20260803
+    overlapping_labels_treated_as_dependent: true
+  capacity_control:
+    zero_channels: 12
+    rationale: match_existing_conditioned_input_width_without_encoding_identity
+  models:
+    mlp:
+      hidden_size: 96
+      num_layers: 2
+      dropout: 0.3
+    transformer_encoder:
+      hidden_size: 128
+      num_layers: 2
+      transformer_heads: 4
+      transformer_ff_multiplier: 2
+      transformer_pooling: temporal_attention
+      max_length: 1024
+      dropout: 0.3
+  training:
+    batch_size: 1024
+    epochs: 12
+    learning_rate: 0.0003
+    weight_decay: 0.0001
+    gradient_clip_norm: 1.0
+    early_stopping_patience: 3
+    lr_scheduler_patience: 2
+    lr_scheduler_factor: 0.5
+    mixed_precision: true
+    deterministic: true
+    classification_loss: bce
+    use_pos_weight: false
+  calibration:
+    methods: [raw, temperature, platt, isotonic]
+    selection: validation_brier_then_log_loss_then_ece
+    threshold_metric: f1
+    threshold_grid_size: 101
+    bins: 10
+  perturbations:
+    methods: [reverse, deterministic_permutation, circular_shift]
+    seed: 20260803
+    preserve_forecast_origin_row: true
+  evaluation:
+    nonoverlap_stride: 10
+    date_block_length: 20
+    bootstrap_iterations: 1000
+    bootstrap_seed: 20260804
+    primary_metric: pair_weighted_within_asset_roc_auc
+    supporting_metrics: [per_asset_macro_roc_auc, equal_asset_roc_auc, pooled_roc_auc, brier, log_loss, ece]
+  promotion_gate:
+    minimum_test_within_asset_auc: 0.55
+    minimum_lower_95ci_within_asset_auc: 0.50
+    minimum_lift_over_pooled_bce_auc: 0.02
+    minimum_each_order_auc_drop: 0.02
+    minimum_seed_within_asset_auc: 0.52
+    minimum_passing_seeds: 2
+    require_raw_probabilities_for_gate: true
+    require_all_seed_auc_above_chance: true
+  prohibited_adaptation:
+    - no_hyperparameter_search
+    - no_architecture_addition_after_scores
+    - no_test_selected_objective
+    - no_target_change

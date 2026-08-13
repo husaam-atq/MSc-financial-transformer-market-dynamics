@@ -1,0 +1,13 @@
+target,split,family,n_assets,n_obs,positives,prevalence,historical_test_scored,fresh_scored
+asset_relative_10_session_maximum_loss_tail_q90,train,Bonds,11,38478,3850,0.10005717552887364,False,False
+asset_relative_10_session_maximum_loss_tail_q90,train,Commodities,8,27504,2753,0.10009453170447935,False,False
+asset_relative_10_session_maximum_loss_tail_q90,train,Crypto,13,27334,2739,0.10020487305187678,False,False
+asset_relative_10_session_maximum_loss_tail_q90,train,Equities,39,128491,12860,0.10008483084418364,False,False
+asset_relative_10_session_maximum_loss_tail_q90,train,FX,6,20988,2101,0.100104821802935,False,False
+asset_relative_10_session_maximum_loss_tail_q90,train,Real assets,3,8417,844,0.10027325650469289,False,False
+asset_relative_10_session_maximum_loss_tail_q90,validation,Bonds,11,3267,279,0.08539944903581267,False,False
+asset_relative_10_session_maximum_loss_tail_q90,validation,Commodities,8,2376,214,0.09006734006734007,False,False
+asset_relative_10_session_maximum_loss_tail_q90,validation,Crypto,13,5694,246,0.04320337197049526,False,False
+asset_relative_10_session_maximum_loss_tail_q90,validation,Equities,39,11583,590,0.05093671760338427,False,False
+asset_relative_10_session_maximum_loss_tail_q90,validation,FX,6,1782,72,0.04040404040404041,False,False
+asset_relative_10_session_maximum_loss_tail_q90,validation,Real assets,3,891,49,0.05499438832772166,False,False

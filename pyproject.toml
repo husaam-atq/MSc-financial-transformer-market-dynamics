@@ -1,0 +1,110 @@
+[build-system]
+requires = ["setuptools>=68", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "market-dynamics"
+version = "0.1.0"
+description = "Leakage-aware multi-asset forecasting and shortcut-learning research pipeline."
+readme = "README.md"
+requires-python = ">=3.11"
+authors = [{ name = "Husaam Ateeq" }]
+dependencies = [
+    "numpy>=1.26",
+    "pandas>=2.1",
+    "pyarrow>=15.0",
+    "PyYAML>=6.0",
+    "scikit-learn>=1.4",
+    "scipy>=1.11",
+    "matplotlib>=3.8",
+    "yfinance>=0.2.40",
+    "joblib>=1.3",
+    "requests>=2.31",
+    "statsmodels>=0.14",
+    "psutil>=5.9",
+    "exchange-calendars>=4.5",
+]
+
+[project.optional-dependencies]
+boosting = [
+    "xgboost>=2.0",
+    "lightgbm>=4.0",
+]
+econometrics = [
+    "arch>=7.0",
+]
+providers = [
+    "pandas-datareader>=0.10",
+    "ccxt>=4.0",
+]
+stretch = [
+    "catboost>=1.2",
+    "seaborn>=0.13",
+]
+large-scale = [
+    "catboost>=1.2",
+    "python-dotenv>=1.0",
+    "requests>=2.31",
+    "psutil>=5.9",
+]
+dev = [
+    "pytest>=8.0",
+    "ruff>=0.6",
+]
+docs = [
+    "python-docx>=1.1",
+]
+deep = [
+    "torch>=2.9",
+]
+all = [
+    "xgboost>=2.0",
+    "lightgbm>=4.0",
+    "arch>=7.0",
+    "pandas-datareader>=0.10",
+    "ccxt>=4.0",
+    "catboost>=1.2",
+    "seaborn>=0.13",
+    "pytest>=8.0",
+    "ruff>=0.6",
+    "python-docx>=1.1",
+    "torch>=2.9",
+    "python-dotenv>=1.0",
+    "requests>=2.31",
+    "statsmodels>=0.14",
+    "psutil>=5.9",
+]
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.pytest.ini_options]
+pythonpath = ["src"]
+testpaths = ["tests"]
+addopts = "-q"
+
+[tool.ruff]
+line-length = 100
+target-version = "py311"
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "UP", "B"]
+ignore = ["E501"]
+
+# These executable scripts make the local src tree importable before importing
+# market_dynamics. Keeping that bootstrap directly visible makes each entry point
+# usable before an editable install; only the imports following it need E402.
+[tool.ruff.lint.per-file-ignores]
+"scripts/build_crypto_hourly_panel.py" = ["E402"]
+"scripts/build_daily_global_panel.py" = ["E402"]
+"scripts/import_stooq_manual.py" = ["E402"]
+"scripts/reconcile_providers.py" = ["E402"]
+"scripts/run_ifddrp_final_experiments.py" = ["E402"]
+"scripts/run_ifddrp_final_interpretability.py" = ["E402"]
+"scripts/run_phase2b_full_benchmark.py" = ["E402"]
+"scripts/run_phase2b_screening.py" = ["E402"]
+"scripts/run_phase2c_robustness.py" = ["E402"]
+"scripts/run_phase5_diagnosis.py" = ["E402"]
+"scripts/run_phase6.py" = ["E402"]
+"scripts/run_prp1_fixed_cross_model.py" = ["E402"]
+"scripts/run_prp1_independent_simulation.py" = ["E402"]

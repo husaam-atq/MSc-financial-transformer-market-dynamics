@@ -1,0 +1,6 @@
+architecture,status,run_count,decision,reason
+PatchTST,reconsidered_rejected,0,not_run,"Useful architecture in general, but no independent evaluation remains and the bottleneck is target/prior confounding rather than receptive field."
+iTransformer,reconsidered_rejected,0,not_run,"Variate-token modelling is poorly matched to the current per-asset pooled window design and would require a new synchronized panel estimand."
+TimeXer_style,reconsidered_rejected,0,not_run,"Exogenous-token modelling cannot repair current-vintage macro provenance and would intensify the macro confound."
+multiscale_transformer,rejected,0,not_run,"Order destruction left pooled ranking effectively unchanged; adding scales would be architecture shopping."
+causal_attention_ablation,rejected,0,not_run,"Every input token precedes the forecast origin and the encoder is non-autoregressive; a causal mask would answer a different question."

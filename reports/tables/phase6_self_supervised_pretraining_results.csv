@@ -1,0 +1,2 @@
+method,status,run_count,decision,reason
+masked_time_series_pretraining,rejected,0,not_run,"The supervised head has no reliable within-asset ranking and the historical test is already open; pretraining would start an uncontrolled model search without independent outcomes."

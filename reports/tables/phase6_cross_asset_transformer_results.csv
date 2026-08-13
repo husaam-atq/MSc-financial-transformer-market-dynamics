@@ -1,0 +1,3 @@
+architecture,status,run_count,decision,reason
+time_by_asset_transformer,rejected,0,not_run,"Asynchronous closes, different calendars, missing assets and target heterogeneity make a date-by-asset tensor scientifically ambiguous; existing order destruction already falsifies strong temporal-order dependence."
+graph_transformer,rejected,0,not_run,"No preregistered causal or economic graph exists; selecting edges after test inspection would add leakage and researcher degrees of freedom."

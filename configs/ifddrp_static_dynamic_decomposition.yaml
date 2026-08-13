@@ -1,0 +1,90 @@
+ifddrp_static_dynamic:
+  protocol_version: 1
+  frozen_before_result_inspection: true
+  evidence_class: historical_held_out_but_adaptive
+  target: target_stress_10d
+  horizon: 10
+  lookback: 60
+  fold: 3
+  purge: 18
+  embargo: 1
+  seeds: [7, 42, 123]
+  model_families: [mlp, transformer_encoder]
+  variants:
+    - no_id_temporal_model
+    - family_prior_dynamic_residual
+    - asset_prior_dynamic_residual
+  comparators:
+    - global_prior
+    - family_prior
+    - asset_prior
+    - existing_asset_conditioned_model
+    - flattened_logistic
+  prior_fit:
+    source: training_endpoints_only
+    additive_smoothing: 1.0
+    fallback: global_training_prevalence
+    immutable_during_training: true
+  capacity_control:
+    zero_channels: 12
+    rationale: match_existing_conditioned_input_width_without_encoding_identity
+  models:
+    mlp:
+      hidden_size: 96
+      num_layers: 2
+      dropout: 0.3
+    transformer_encoder:
+      hidden_size: 128
+      num_layers: 2
+      transformer_heads: 4
+      transformer_ff_multiplier: 2
+      transformer_pooling: temporal_attention
+      max_length: 1024
+      dropout: 0.3
+  training:
+    batch_size: 1024
+    epochs: 12
+    learning_rate: 0.0003
+    weight_decay: 0.0001
+    gradient_clip_norm: 1.0
+    early_stopping_patience: 3
+    lr_scheduler_patience: 2
+    lr_scheduler_factor: 0.5
+    mixed_precision: true
+    deterministic: true
+    classification_loss: bce
+    use_pos_weight: false
+    sampling: pooled_shuffle
+  calibration:
+    methods: [raw, temperature, platt, isotonic]
+    selection: validation_brier_then_log_loss_then_ece
+    threshold_metric: f1
+    threshold_grid_size: 101
+    bins: 10
+  perturbations:
+    methods: [reverse, deterministic_permutation, circular_shift]
+    seed: 20260803
+    preserve_forecast_origin_row: true
+    additional_controls: [zero_dynamic_component, within_asset_shuffled_dynamic_component]
+  evaluation:
+    nonoverlap_stride: 10
+    date_block_length: 20
+    bootstrap_iterations: 1000
+    bootstrap_seed: 20260803
+    primary_metric: pair_weighted_within_asset_roc_auc
+    supporting_metrics: [per_asset_macro_roc_auc, equal_asset_roc_auc, pooled_roc_auc, brier, log_loss, ece]
+  promotion_gate:
+    minimum_test_within_asset_auc: 0.55
+    minimum_lower_95ci_within_asset_auc: 0.50
+    minimum_lift_over_simple_dynamic_auc: 0.02
+    minimum_each_order_auc_drop: 0.02
+    minimum_seed_within_asset_auc: 0.52
+    minimum_passing_seeds: 2
+    require_raw_brier_and_log_loss_better_than_prior: true
+    require_zero_residual_exact_prior_reconstruction: true
+    require_shuffled_residual_auc_drop: 0.02
+  prohibited_adaptation:
+    - no_hyperparameter_search
+    - no_architecture_addition_after_scores
+    - no_test_selected_calibration_or_threshold
+    - no_target_change

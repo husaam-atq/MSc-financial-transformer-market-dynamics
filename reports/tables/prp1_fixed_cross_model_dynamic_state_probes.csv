@@ -1,0 +1,2 @@
+status,reason,evidence_class
+not_executed,dynamic-state labels and controls were not frozen in the fixed cross-model protocol,scientific_stop_before_outcome_inspection

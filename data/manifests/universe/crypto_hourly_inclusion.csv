@@ -1,0 +1,21 @@
+Ticker,binance_symbol,ccxt_symbol,asset_name,asset_class,expected_start_date,inclusion_reason,row_count,actual_start,actual_end,included,decision_reason
+BTC/USDT,BTCUSDT,BTC/USDT,Bitcoin,Spot Crypto,2017-08-17,Largest liquid spot market,76909,2017-08-17 04:00:00,2026-05-31 23:00:00,True,included
+ETH/USDT,ETHUSDT,ETH/USDT,Ethereum,Spot Crypto,2017-08-17,Largest smart-contract market,76909,2017-08-17 04:00:00,2026-05-31 23:00:00,True,included
+BNB/USDT,BNBUSDT,BNB/USDT,BNB,Spot Crypto,2017-11-06,Exchange ecosystem token,74973,2017-11-06 03:00:00,2026-05-31 23:00:00,True,included
+XRP/USDT,XRPUSDT,XRP/USDT,XRP,Spot Crypto,2017-08-17,Liquid payment token,70705,2018-05-04 08:00:00,2026-05-31 23:00:00,True,included
+ADA/USDT,ADAUSDT,ADA/USDT,Cardano,Spot Crypto,2018-04-17,Large-cap smart-contract token,71117,2018-04-17 04:00:00,2026-05-31 23:00:00,True,included
+SOL/USDT,SOLUSDT,SOL/USDT,Solana,Spot Crypto,2020-08-11,Large-cap layer-one token,50855,2020-08-11 06:00:00,2026-05-31 23:00:00,True,included
+DOGE/USDT,DOGEUSDT,DOGE/USDT,Dogecoin,Spot Crypto,2019-07-05,Liquid meme token,60497,2019-07-05 12:00:00,2026-05-31 23:00:00,True,included
+TRX/USDT,TRXUSDT,TRX/USDT,TRON,Spot Crypto,2017-08-17,Large-cap payment token,69790,2018-06-11 11:00:00,2026-05-31 23:00:00,True,included
+LTC/USDT,LTCUSDT,LTC/USDT,Litecoin,Spot Crypto,2017-08-17,Mature payment crypto,74085,2017-12-13 03:00:00,2026-05-31 23:00:00,True,included
+BCH/USDT,BCHUSDT,BCH/USDT,Bitcoin Cash,Spot Crypto,2017-11-28,Large-cap Bitcoin fork,57007,2019-11-28 10:00:00,2026-05-31 23:00:00,True,included
+LINK/USDT,LINKUSDT,LINK/USDT,Chainlink,Spot Crypto,2019-01-16,Large-cap oracle token,64563,2019-01-16 10:00:00,2026-05-31 23:00:00,True,included
+AVAX/USDT,AVAXUSDT,AVAX/USDT,Avalanche,Spot Crypto,2020-09-22,Large-cap layer-one token,49847,2020-09-22 06:00:00,2026-05-31 23:00:00,True,included
+DOT/USDT,DOTUSDT,DOT/USDT,Polkadot,Spot Crypto,2020-08-19,Large-cap interoperability token,50670,2020-08-18 23:00:00,2026-05-31 23:00:00,True,included
+POL/USDT,POLUSDT,POL/USDT,Polygon Ecosystem Token,Spot Crypto,2024-09-13,Valid MATIC successor,15014,2024-09-13 10:00:00,2026-05-31 23:00:00,True,included
+ATOM/USDT,ATOMUSDT,ATOM/USDT,Cosmos,Spot Crypto,2019-04-29,Large-cap interoperability token,62103,2019-04-29 04:00:00,2026-05-31 23:00:00,True,included
+UNI/USDT,UNIUSDT,UNI/USDT,Uniswap,Spot Crypto,2020-09-17,Liquid DEX governance token,49970,2020-09-17 03:00:00,2026-05-31 23:00:00,True,included
+XLM/USDT,XLMUSDT,XLM/USDT,Stellar,Spot Crypto,2018-05-31,Large-cap payment token,70056,2018-05-31 09:00:00,2026-05-31 23:00:00,True,included
+ETC/USDT,ETCUSDT,ETC/USDT,Ethereum Classic,Spot Crypto,2018-06-12,Large-cap legacy smart-contract token,69785,2018-06-12 02:00:00,2026-05-31 23:00:00,True,included
+FIL/USDT,FILUSDT,FIL/USDT,Filecoin,Spot Crypto,2020-10-16,Decentralised storage token,49284,2020-10-15 17:00:00,2026-05-31 23:00:00,True,included
+AAVE/USDT,AAVEUSDT,AAVE/USDT,Aave,Spot Crypto,2020-10-15,Large-cap DeFi token,49298,2020-10-15 03:00:00,2026-05-31 23:00:00,True,included

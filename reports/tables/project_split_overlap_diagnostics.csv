@@ -1,0 +1,5 @@
+split_protocol,purge_global_dates,source_split,next_split,source_end,next_start,affected_assets,overlapping_labels
+historical_purge_10_global_dates,10,train,validation,2023-12-02,2023-12-14,60,120
+historical_purge_10_global_dates,10,validation,test,2025-03-03,2025-03-15,60,60
+corrected_asset_session_purge,18,train,validation,2023-11-24,2023-12-14,0,0
+corrected_asset_session_purge,18,validation,test,2025-02-23,2025-03-15,0,0

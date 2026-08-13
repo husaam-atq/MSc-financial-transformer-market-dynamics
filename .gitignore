@@ -1,0 +1,77 @@
+# Secrets and local configuration
+.env
+.env.*
+!.env.example
+*.key
+*.pem
+*api_key*
+*apikey*
+*secret*
+
+# Local workflow state
+.local/
+.local/**
+
+# Virtual environments and packaging artefacts
+.venv/
+venv/
+*.egg-info/
+
+# Python caches
+__pycache__/
+**/__pycache__/
+*.py[cod]
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+
+# Notebook checkpoints
+.ipynb_checkpoints/
+**/.ipynb_checkpoints/
+
+# Local logs and tool artefacts
+*.log
+logs/
+catboost_info/
+
+# Raw/interim/external data and bulky local datasets
+data/raw/
+data/interim/
+data/external/
+data/**/cache/
+data/**/*.zip
+data/**/*.tar
+data/**/*.tar.gz
+data/**/*.gz
+data/**/*.parquet
+data/**/*.feather
+data/**/*.h5
+data/**/*.hdf5
+
+# Model checkpoints, predictions and temporary run artefacts
+# NOTE: anchor to the repository root so these do not shadow source packages
+# such as src/market_dynamics/models/.
+results/
+/models/
+/checkpoints/
+**/checkpoints/
+**/checkpoint*/
+**/*.ckpt
+**/*.pt
+**/*.pth
+**/predictions/
+**/*prediction*.csv
+**/*prediction*.parquet
+**/*predictions*.csv
+**/*predictions*.parquet
+
+# Keep small dissertation-ready tables and figures trackable, but exclude known bulky metric dumps.
+reports/tables/*walkforward_metrics.csv
+reports/tables/*large_scale_metrics.csv
+reports/tables/*deep_metrics.csv
+reports/tables/phase2d_p1_metrics.csv
+# Final paper figures are local render artefacts. Compact tables record their evidence.
+/reports/figures/
+# Detailed Phase 3 long-form tables stay local; compact derived summaries are tracked.
+reports/tables/phase3_full_interpretability_metrics.csv
+reports/tables/phase3_full_temporal_importance.csv

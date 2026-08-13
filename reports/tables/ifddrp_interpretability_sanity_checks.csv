@@ -1,0 +1,19 @@
+check,variant,seed,rows,target_max_abs_error,probability_max_abs_error,passed,value,detail
+authoritative_prediction_reconstruction,corrected_asset_conditioned,7,21514.0,0.0,0.0,True,,
+authoritative_prediction_reconstruction,corrected_asset_conditioned,42,21514.0,0.0,0.0,True,,
+authoritative_prediction_reconstruction,corrected_asset_conditioned,123,21514.0,0.0,0.0,True,,
+authoritative_prediction_reconstruction,no_explicit_asset_id,7,21514.0,0.0,0.0,True,,
+authoritative_prediction_reconstruction,no_explicit_asset_id,42,21514.0,0.0,0.0,True,,
+authoritative_prediction_reconstruction,no_explicit_asset_id,123,21514.0,0.0,0.0,True,,
+attribution_occlusion_rank_agreement,corrected_asset_conditioned,7,,,,True,0.39999999999999997,macro_context;range_dispersion;returns_momentum;volatility;volume_liquidity
+attribution_occlusion_rank_agreement,corrected_asset_conditioned,42,,,,True,0.8999999999999998,macro_context;range_dispersion;returns_momentum;volatility;volume_liquidity
+attribution_occlusion_rank_agreement,corrected_asset_conditioned,123,,,,True,0.7999999999999999,macro_context;range_dispersion;returns_momentum;volatility;volume_liquidity
+integrated_gradients_seed_rank_stability,corrected_asset_conditioned,7_vs_42,,,,True,0.8999999999999998,group-rank diagnostic
+integrated_gradients_seed_rank_stability,corrected_asset_conditioned,7_vs_123,,,,True,0.8999999999999998,group-rank diagnostic
+integrated_gradients_seed_rank_stability,corrected_asset_conditioned,42_vs_123,,,,True,0.9999999999999999,group-rank diagnostic
+trained_vs_parameter_randomized_attribution_rank,corrected_asset_conditioned,20260808,,,,False,0.6,full module parameter reset
+label_permutation_attribution_association,corrected_asset_conditioned,7,,,,True,0.009094385915417575,diagnostic permutation p=0.9621; not a causal explanation test
+historical_temporal_order_control,corrected_asset_conditioned,ensemble,,,,False,-0.0014490816003059903,reverse
+historical_temporal_order_control,corrected_asset_conditioned,ensemble,,,,False,0.0012285306526216289,deterministic_permutation
+historical_temporal_order_control,corrected_asset_conditioned,ensemble,,,,False,-0.0005076623750367437,circular_shift
+identity_removal_pooled_auc_drop,corrected_asset_conditioned,ensemble,,,,True,0.07433690249834202,identity materially affects pooled ranking

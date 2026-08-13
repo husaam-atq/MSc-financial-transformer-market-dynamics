@@ -1,0 +1,104 @@
+prp1_milestone2:
+  programme: PRP-1
+  evidence_boundary_commit: 95eb7218e0a7a54befa8346f7dac4717181dba09
+  historical_status: opened_development_only
+
+  external_replication:
+    replication_id: H-R01-JP-SECTOR-ETF
+    provider: yfinance
+    universe: configs/universes/prp1_japan_sector_etfs.csv
+    start_date: "2010-01-01"
+    end_date_exclusive: "2026-07-16"
+    minimum_observed_rows: 3000
+    minimum_coverage_fraction: 0.80
+    inclusion_uses_outcomes: false
+    target: target_stress_10d
+    horizon_trading_days: 10
+    target_definition:
+      large_negative_return: -0.05
+      drawdown_threshold: -0.07
+      volatility_spike_multiplier: 2.0
+      past_volatility_window: 20
+    lookback: 60
+    purge: 18
+    train_end: "2018-12-31"
+    validation_start: "2019-01-01"
+    validation_end: "2022-12-31"
+    test_start: "2023-01-01"
+    test_end: "2026-07-15"
+    seeds: [7, 42, 123]
+    primary_model: transformer_encoder
+    primary_model_parameters:
+      hidden_size: 128
+      dropout: 0.3
+      num_layers: 2
+      transformer_heads: 4
+      transformer_ff_multiplier: 2
+      asset_embedding_dim: 12
+      max_length: 1024
+      transformer_pooling: temporal_attention
+    training:
+      batch_size: 512
+      epochs: 12
+      learning_rate: 0.0003
+      weight_decay: 0.0001
+      early_stopping_patience: 3
+      mixed_precision: true
+      classification_loss: soft_f1
+    perturbations: [reverse, deterministic_permutation, circular_shift]
+    perturbation_seed: 20260716
+    success_gates:
+      minimum_pooled_model_auc: 0.65
+      minimum_static_asset_prior_auc: 0.60
+      minimum_pooled_minus_within_auc: 0.10
+      maximum_within_asset_auc_for_shortcut: 0.55
+      maximum_order_perturbation_auc_change: 0.03
+      strong_replication_requires_all_primary_gates: true
+      partial_replication_minimum_gates: 2
+
+  independent_simulation:
+    implementation: independent_shortcut_simulation
+    base_seed: 20260716
+    replications_per_core_cell: 20
+    n_assets: 30
+    n_families: 5
+    train_periods: 400
+    validation_periods: 200
+    sequence_length: 8
+    purge_periods: 8
+    prior_heterogeneity: [0.0, 0.75, 1.5, 2.5]
+    dynamic_signal: [0.0, 0.5, 1.0, 1.5]
+    persistence: [0.0, 0.7]
+    core_common_shock: 0.0
+    core_cross_sectional_dependence: 0.0
+    robustness_scenarios:
+      - id: family_prior
+        family_prior_heterogeneity: 0.75
+      - id: common_shock
+        common_shock: 0.5
+      - id: cross_sectional_dependence
+        cross_sectional_dependence: 0.5
+      - id: persistent_events
+        event_duration: 4
+      - id: missingness
+        missingness: 0.10
+    robustness_anchor_cells:
+      - {prior_heterogeneity: 0.0, dynamic_signal: 0.0, persistence: 0.0}
+      - {prior_heterogeneity: 2.5, dynamic_signal: 0.0, persistence: 0.0}
+      - {prior_heterogeneity: 0.0, dynamic_signal: 1.5, persistence: 0.7}
+      - {prior_heterogeneity: 2.5, dynamic_signal: 1.5, persistence: 0.7}
+    robustness_application: >-
+      Apply each one-at-a-time scenario only to the four frozen diagnostic
+      anchors, with 20 common-seed replications: 400 robustness runs in
+      addition to 640 core runs. Robustness scenarios cannot rescue core gates.
+    gates:
+      minimum_static_prior_auc_increase: 0.15
+      no_signal_within_auc_lower: 0.47
+      no_signal_within_auc_upper: 0.53
+      minimum_strong_signal_within_auc: 0.65
+      minimum_strong_signal_reversal_drop: 0.10
+      minimum_strong_signal_permutation_drop: 0.03
+    inference:
+      confidence_level: 0.95
+      paired_across_common_seeds: true
+      multiplicity_family: five_primary_mechanism_tests

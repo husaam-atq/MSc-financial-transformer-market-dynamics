@@ -1,0 +1,2 @@
+diagnostic,mean_absolute_probability_change,median_absolute_probability_change,n_obs,positives,prevalence,f1,balanced_accuracy,roc_auc,pr_auc,brier_score,prediction_positive_rate,asset_macro_roc_auc,asset_macro_pr_auc,asset_macro_balanced_accuracy,asset_macro_f1
+cyclic_asset_id_swap,0.09002516802592053,0.020648217228104955,21514,3471,0.16133680394161942,0.3551424727895316,0.6189881504143252,0.682927550726199,0.29739065658212743,0.12898308809377457,0.21874128474481733,0.5286407189755647,0.16057463093484986,0.5289646391398993,0.09716579593218082

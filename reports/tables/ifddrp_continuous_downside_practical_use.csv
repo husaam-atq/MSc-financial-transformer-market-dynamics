@@ -1,0 +1,2 @@
+status,selected_cell,promotion_gate_passed,permitted_use,reason
+locked,continuous_downside__transformer_encoder__no_id_temporal,False,none,one or more temporal-skill gates failed

@@ -1,0 +1,21 @@
+symbol,binance_symbol,ccxt_symbol,asset_name,asset_class,expected_start_date,inclusion_reason
+BTC/USDT,BTCUSDT,BTC/USDT,Bitcoin,Spot Crypto,2017-08-17,Largest liquid spot market
+ETH/USDT,ETHUSDT,ETH/USDT,Ethereum,Spot Crypto,2017-08-17,Largest smart-contract market
+BNB/USDT,BNBUSDT,BNB/USDT,BNB,Spot Crypto,2017-11-06,Exchange ecosystem token
+XRP/USDT,XRPUSDT,XRP/USDT,XRP,Spot Crypto,2017-08-17,Liquid payment token
+ADA/USDT,ADAUSDT,ADA/USDT,Cardano,Spot Crypto,2018-04-17,Large-cap smart-contract token
+SOL/USDT,SOLUSDT,SOL/USDT,Solana,Spot Crypto,2020-08-11,Large-cap layer-one token
+DOGE/USDT,DOGEUSDT,DOGE/USDT,Dogecoin,Spot Crypto,2019-07-05,Liquid meme token
+TRX/USDT,TRXUSDT,TRX/USDT,TRON,Spot Crypto,2017-08-17,Large-cap payment token
+LTC/USDT,LTCUSDT,LTC/USDT,Litecoin,Spot Crypto,2017-08-17,Mature payment crypto
+BCH/USDT,BCHUSDT,BCH/USDT,Bitcoin Cash,Spot Crypto,2017-11-28,Large-cap Bitcoin fork
+LINK/USDT,LINKUSDT,LINK/USDT,Chainlink,Spot Crypto,2019-01-16,Large-cap oracle token
+AVAX/USDT,AVAXUSDT,AVAX/USDT,Avalanche,Spot Crypto,2020-09-22,Large-cap layer-one token
+DOT/USDT,DOTUSDT,DOT/USDT,Polkadot,Spot Crypto,2020-08-19,Large-cap interoperability token
+POL/USDT,POLUSDT,POL/USDT,Polygon Ecosystem Token,Spot Crypto,2024-09-13,Valid MATIC successor
+ATOM/USDT,ATOMUSDT,ATOM/USDT,Cosmos,Spot Crypto,2019-04-29,Large-cap interoperability token
+UNI/USDT,UNIUSDT,UNI/USDT,Uniswap,Spot Crypto,2020-09-17,Liquid DEX governance token
+XLM/USDT,XLMUSDT,XLM/USDT,Stellar,Spot Crypto,2018-05-31,Large-cap payment token
+ETC/USDT,ETCUSDT,ETC/USDT,Ethereum Classic,Spot Crypto,2018-06-12,Large-cap legacy smart-contract token
+FIL/USDT,FILUSDT,FIL/USDT,Filecoin,Spot Crypto,2020-10-16,Decentralised storage token
+AAVE/USDT,AAVEUSDT,AAVE/USDT,Aave,Spot Crypto,2020-10-15,Large-cap DeFi token

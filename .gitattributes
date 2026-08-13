@@ -1,0 +1,14 @@
+# Keep reproducible text artefacts stable across Windows and Unix checkouts.
+*.csv text eol=lf
+*.example text eol=lf
+*.gitignore text eol=lf
+*.md text eol=lf
+*.py text eol=lf
+*.toml text eol=lf
+*.txt text eol=lf
+*.yaml text eol=lf
+*.yml text eol=lf
+
+# Submission artefacts are opaque binary files.
+*.docx binary
+*.pdf binary

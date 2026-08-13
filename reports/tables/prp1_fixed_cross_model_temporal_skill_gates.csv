@@ -1,0 +1,6 @@
+model,ensemble_within_asset_auc,ensemble_within_auc_ci_lower,all_seeds_within_auc_above_0_5,base_temporal_skill_gate,all_ensemble_perturbation_drops_ge_0_02_with_positive_lower_ci,all_seed_perturbation_drops_nonnegative,strict_model_gate_pass
+mlp,0.5569669222487239,0.5048314893963152,True,True,False,False,False
+lstm,0.5183437372440091,0.4599873338215332,False,False,False,False,False
+tcn,0.5474533530744516,0.4921661452227869,False,False,False,False,False
+transformer_encoder,0.4916384701486699,0.4295053421007465,False,False,False,False,False
+flattened_logistic,0.5121710821062693,0.4788832439271261,True,False,False,False,False

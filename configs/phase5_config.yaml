@@ -1,0 +1,138 @@
+phase5:
+  description: >-
+    Cross-asset generalisation and emergent-market-dynamics extension. Historical
+    Phase 2 through Phase 4 artefacts remain immutable. Historical test outputs
+    are context only; all new candidate selection uses historical validation.
+  device: "auto"
+  output:
+    run_prefix: "phase5"
+  historical_reference:
+    phase4_final_run_dir: "results/runs/phase4_stress_final_20260710"
+    phase4_candidate: "full_attention_pool_lb60"
+    target: "target_stress_10d"
+    lookback: 60
+    fold: 3
+    legacy_purge_global_dates: 10
+    historical_test_scored_end: "2026-06-13"
+  fresh_holdout:
+    track: "daily"
+    provider: "yfinance"
+    universe: "configs/universes/daily_global_universe.csv"
+    processed_panel: "data/processed/daily_global_panel"
+    target_horizon_trading_days: 10
+    seal_id: "phase5_daily_fresh_holdout_20260710_r1"
+    end_date: null
+    retrieval_batch_size: 20
+    max_retries: 4
+    retry_backoff_seconds: 2.0
+    min_raw_rows_for_availability: 1
+    minimum_interpretable_dates: 20
+  family_mapping:
+    Equity ETF: "Equities"
+    Equity Sector: "Equities"
+    Equity Factor: "Equities"
+    International Equity: "Equities"
+    Fixed Income: "Bonds"
+    Commodity: "Commodities"
+    Currency: "FX"
+    Crypto: "Crypto"
+    Property: "Real assets"
+    Infrastructure: "Real assets"
+  family_postprocessing:
+    calibration_fit_fraction: 0.5
+    threshold_fit_end_fraction: 0.75
+    minimum_family_observations: 500
+    minimum_family_positive_examples: 30
+    calibration_methods: ["raw", "temperature", "platt", "isotonic"]
+    threshold_metric: "f1"
+    threshold_grid_size: 101
+    calibration_bins: 10
+  target_comparability:
+    target: "target_stress_10d"
+    horizon: 10
+    large_negative_return: -0.05
+    drawdown_threshold: -0.07
+    volatility_spike_multiplier: 2.0
+    past_volatility_window: 20
+    minimum_family_observations: 500
+  development:
+    primary_metric: "non_crypto_pr_auc"
+    secondary_metric: "family_macro_roc_auc"
+    tertiary_metric: "family_macro_balanced_accuracy"
+    seeds: [7, 42, 123]
+    development_seed: 42
+  training:
+    mixed_precision: true
+    batch_size: 1024
+    epochs: 12
+    learning_rate: 0.0003
+    weight_decay: 0.0001
+    gradient_clip_norm: 1.0
+    early_stopping_patience: 3
+    lr_scheduler_patience: 2
+    lr_scheduler_factor: 0.5
+    num_workers: 0
+    deterministic: true
+    classification_loss: "soft_f1"
+    use_pos_weight: false
+  model:
+    model: "transformer_encoder"
+    hidden_size: 128
+    dropout: 0.3
+    num_layers: 2
+    transformer_heads: 4
+    transformer_ff_multiplier: 2
+    asset_embedding_dim: 12
+    family_embedding_dim: 8
+    max_length: 1024
+    transformer_pooling: "temporal_attention"
+  generalisation:
+    run_name: "phase5_cross_asset_generalisation_20260710"
+    monitor_validation_fraction: 0.75
+    development_seed: 42
+    finalist_count: 2
+    finalist_seeds: [7, 42, 123]
+    selection_min_non_crypto_pr_auc_gain: 0.01
+    selection_max_family_macro_roc_auc_decline: 0.005
+    calibration_methods: ["raw", "temperature", "platt", "isotonic"]
+    threshold_metric: "f1"
+    threshold_grid_size: 101
+    calibration_bins: 10
+    candidates:
+      - id: "uniform_asset_conditioned"
+        sampler: "uniform"
+        architecture: "asset_conditioned_transformer"
+      - id: "equal_asset_conditioned"
+        sampler: "equal_asset"
+        architecture: "asset_conditioned_transformer"
+      - id: "equal_family_conditioned"
+        sampler: "equal_family"
+        architecture: "asset_conditioned_transformer"
+      - id: "equal_family_hierarchical"
+        sampler: "equal_family"
+        architecture: "family_adaptive_transformer"
+  market_dynamics:
+    analysis_end: "historical_validation_end"
+    lags: [1, 3, 5, 10]
+    rolling_correlation_window: 20
+    training_quantiles: [0.25, 0.75]
+    multiple_testing_method: "benjamini_hochberg"
+    minimum_pair_observations: 30
+    minimum_rolling_pair_observations: 10
+    volume_feature: "volume_ma_ratio_20d"
+    momentum_feature: "cum_return_20d"
+  primary_interpretability:
+    run_name: "phase5_primary_interpretability_20260710"
+    primary_model_run_dir: "results/runs/phase4_stress_final_20260710"
+    candidate_id: "full_attention_pool_lb60"
+    seeds: [7, 42, 123]
+    sample_per_family: 120
+    batch_size: 256
+    reconstruction_tolerance: 0.00001
+    feature_masking_baselines: ["train_mean_scaled_zero", "within_window_circular_shift"]
+    matched_feature_size: 4
+    matched_feature_draws: 8
+    matched_feature_seed: 20260710
+    regime_feature: "rolling_drawdown_60d"
+    regime_training_quantile: 0.25
+    randomization_seeds: [20260710, 20260711, 20260712]

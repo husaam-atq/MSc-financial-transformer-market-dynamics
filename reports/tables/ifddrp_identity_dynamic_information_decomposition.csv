@@ -1,0 +1,5 @@
+component,pooled_roc_auc,within_asset_roc_auc,identity_probe_accuracy,interpretation
+conditioned_transformer,0.7898135576855014,0.49163847014866996,0.1669303797468354,pooled ranking mixes static identity and dynamic inputs
+no_explicit_asset_id_transformer,0.7154766551871594,0.47257008594782257,,removing ID lowers pooled AUC without recovering within-asset skill
+training_only_asset_prior,0.8239058561294393,0.5,1.0,strongest pooled static comparator
+training_only_family_prior,0.816548771506871,0.5,,family-level static comparator

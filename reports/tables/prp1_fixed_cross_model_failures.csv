@@ -1,0 +1,2 @@
+stage,status,model,reason
+smoke_gate,protocol_noncompliance,flattened_logistic/asset_conditioned;flattened_logistic/no_explicit_asset_id;lstm/no_explicit_asset_id;mlp/no_explicit_asset_id;tcn/no_explicit_asset_id;transformer_encoder/no_explicit_asset_id,execution proceeded without smoke coverage for all registered model/identity combinations

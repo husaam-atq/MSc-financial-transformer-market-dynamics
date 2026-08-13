@@ -1,0 +1,94 @@
+prp1_fixed_cross_model:
+  evidence_class: historical_held_out_but_adaptive
+  result_use: methodological_falsification_not_model_selection
+  target: target_stress_10d
+  lookback: 60
+  fold: 3
+  purge: 18
+  seeds: [7, 42, 123]
+  models:
+    - flattened_logistic
+    - mlp
+    - lstm
+    - tcn
+    - transformer_encoder
+  identity_variants: [asset_conditioned, no_explicit_asset_id]
+  excluded_models:
+    patchtst: no_preregistered_patch_scale_hypothesis
+    itransformer: feature_token_order_is_not_a_registered_temporal_mechanism
+    gru: redundant_recurrent_family_under_bounded_budget
+    bilstm: future_direction_within_past_window_adds_no_distinct_mechanism
+  model:
+    dropout: 0.3
+    tcn_kernel_size: 3
+    transformer_heads: 4
+    transformer_ff_multiplier: 2
+    transformer_pooling: temporal_attention
+    asset_embedding_dim: 12
+    max_length: 1024
+    capacity_matched_no_id_zero_channels: true
+    hidden_sizes:
+      mlp: 96
+      lstm: 144
+      tcn: 109
+      transformer_encoder: 128
+    layers:
+      mlp: 2
+      lstm: 2
+      tcn: 4
+      transformer_encoder: 2
+  logistic:
+    solver: saga
+    penalty: l2
+    C: 1.0
+    max_iter: 500
+    tolerance: 0.0001
+  training:
+    mixed_precision: true
+    batch_size: 1024
+    epochs: 12
+    learning_rate: 0.0003
+    weight_decay: 0.0001
+    gradient_clip_norm: 1.0
+    early_stopping_patience: 3
+    lr_scheduler_patience: 2
+    lr_scheduler_factor: 0.5
+    num_workers: 0
+    deterministic: true
+    classification_loss: soft_f1
+    use_pos_weight: false
+  calibration:
+    methods: [raw, temperature, platt, isotonic]
+    selection: validation_brier_then_log_loss_then_ece
+    threshold_metric: f1
+    threshold_grid_size: 101
+    bins: 10
+  perturbations:
+    methods: [reverse, deterministic_permutation, circular_shift]
+    seed: 20260712
+  probes:
+    enabled_for_hidden_models: true
+    samples_per_asset_per_split: 128
+    labels: [asset_id, family_id]
+    probe: train_only_standardized_logistic
+  evaluation:
+    primary_metrics:
+      - pooled_roc_auc
+      - pair_weighted_within_asset_roc_auc
+      - per_asset_macro_roc_auc
+      - static_asset_prior_roc_auc
+      - pooled_minus_within_auc
+      - temporal_perturbation_auc_drop
+      - id_swap_auc_change
+    secondary_metrics: [pr_auc, brier, log_loss, equal_asset_roc_auc, equal_date_roc_auc]
+    nonoverlap_stride: 10
+    block_size_dates: 20
+    bootstrap_iterations: 1000
+    bootstrap_seed: 20260715
+  gates:
+    minimum_models_completed: 5
+    require_both_identity_variants: true
+    require_all_three_perturbations: true
+    no_architecture_addition_after_results: true
+    publication_promotion_requires_external_provider_replication: true
+    maximum_neural_parameter_ratio: 1.05

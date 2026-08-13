@@ -1,0 +1,81 @@
+ticker,asset_name,asset_class,region,source_symbol_yahoo,source_symbol_stooq,inclusion_reason,expected_start_date,row_count,actual_start,actual_end,included,decision_reason
+SPY,SPDR S&P 500 ETF,Equity ETF,US,SPY,spy.us,Broad US equity benchmark,2010-01-01,4142,2010-01-04,2026-06-23,True,included
+QQQ,Invesco QQQ Trust,Equity ETF,US,QQQ,qqq.us,US growth and technology exposure,2010-01-01,4142,2010-01-04,2026-06-23,True,included
+IWM,iShares Russell 2000 ETF,Equity ETF,US,IWM,iwm.us,US small-cap exposure,2010-01-01,4142,2010-01-04,2026-06-23,True,included
+DIA,SPDR Dow Jones Industrial Average ETF,Equity ETF,US,DIA,dia.us,US large-cap value tilt,2010-01-01,4142,2010-01-04,2026-06-23,True,included
+VTI,Vanguard Total Stock Market ETF,Equity ETF,US,VTI,vti.us,US total market exposure,2010-01-01,4142,2010-01-04,2026-06-23,True,included
+VT,Vanguard Total World Stock ETF,Equity ETF,Global,VT,vt.us,Global equity exposure,2010-01-01,4142,2010-01-04,2026-06-23,True,included
+XLK,Technology Select Sector SPDR Fund,Equity Sector,US,XLK,xlk.us,US technology sector,2010-01-01,4142,2010-01-04,2026-06-23,True,included
+XLF,Financial Select Sector SPDR Fund,Equity Sector,US,XLF,xlf.us,US financial sector,2010-01-01,4142,2010-01-04,2026-06-23,True,included
+XLV,Health Care Select Sector SPDR Fund,Equity Sector,US,XLV,xlv.us,US health care sector,2010-01-01,4142,2010-01-04,2026-06-23,True,included
+XLE,Energy Select Sector SPDR Fund,Equity Sector,US,XLE,xle.us,US energy sector,2010-01-01,4142,2010-01-04,2026-06-23,True,included
+XLY,Consumer Discretionary Select Sector SPDR Fund,Equity Sector,US,XLY,xly.us,US consumer discretionary sector,2010-01-01,4142,2010-01-04,2026-06-23,True,included
+XLP,Consumer Staples Select Sector SPDR Fund,Equity Sector,US,XLP,xlp.us,US consumer staples sector,2010-01-01,4142,2010-01-04,2026-06-23,True,included
+XLI,Industrial Select Sector SPDR Fund,Equity Sector,US,XLI,xli.us,US industrials sector,2010-01-01,4142,2010-01-04,2026-06-23,True,included
+XLB,Materials Select Sector SPDR Fund,Equity Sector,US,XLB,xlb.us,US materials sector,2010-01-01,4142,2010-01-04,2026-06-23,True,included
+XLU,Utilities Select Sector SPDR Fund,Equity Sector,US,XLU,xlu.us,US utilities sector,2010-01-01,4142,2010-01-04,2026-06-23,True,included
+XLRE,Real Estate Select Sector SPDR Fund,Equity Sector,US,XLRE,xlre.us,US real estate sector,2015-10-08,4142,2010-01-04,2026-06-23,True,included
+XLC,Communication Services Select Sector SPDR Fund,Equity Sector,US,XLC,xlc.us,US communication sector,2018-06-18,4142,2010-01-04,2026-06-23,True,included
+MTUM,iShares MSCI USA Momentum Factor ETF,Equity Factor,US,MTUM,mtum.us,Momentum factor,2013-04-18,4142,2010-01-04,2026-06-23,True,included
+VLUE,iShares MSCI USA Value Factor ETF,Equity Factor,US,VLUE,vlue.us,Value factor,2013-04-18,4142,2010-01-04,2026-06-23,True,included
+QUAL,iShares MSCI USA Quality Factor ETF,Equity Factor,US,QUAL,qual.us,Quality factor,2013-07-16,4142,2010-01-04,2026-06-23,True,included
+USMV,iShares MSCI USA Min Vol Factor ETF,Equity Factor,US,USMV,usmv.us,Minimum volatility factor,2011-10-18,4142,2010-01-04,2026-06-23,True,included
+SIZE,iShares MSCI USA Size Factor ETF,Equity Factor,US,SIZE,size.us,Size factor,2013-04-18,4142,2010-01-04,2026-06-23,True,included
+VTV,Vanguard Value ETF,Equity Factor,US,VTV,vtv.us,Large-cap value style,2010-01-01,4142,2010-01-04,2026-06-23,True,included
+VUG,Vanguard Growth ETF,Equity Factor,US,VUG,vug.us,Large-cap growth style,2010-01-01,4142,2010-01-04,2026-06-23,True,included
+IWD,iShares Russell 1000 Value ETF,Equity Factor,US,IWD,iwd.us,Large-cap value style,2010-01-01,4142,2010-01-04,2026-06-23,True,included
+IWF,iShares Russell 1000 Growth ETF,Equity Factor,US,IWF,iwf.us,Large-cap growth style,2010-01-01,4142,2010-01-04,2026-06-23,True,included
+EFA,iShares MSCI EAFE ETF,International Equity,Developed,EFA,efa.us,Developed markets ex US,2010-01-01,4142,2010-01-04,2026-06-23,True,included
+EEM,iShares MSCI Emerging Markets ETF,International Equity,Emerging,EEM,eem.us,Emerging markets,2010-01-01,4142,2010-01-04,2026-06-23,True,included
+VEA,Vanguard FTSE Developed Markets ETF,International Equity,Developed,VEA,vea.us,Developed markets ex US,2010-01-01,4142,2010-01-04,2026-06-23,True,included
+VWO,Vanguard FTSE Emerging Markets ETF,International Equity,Emerging,VWO,vwo.us,Emerging markets,2010-01-01,4142,2010-01-04,2026-06-23,True,included
+VGK,Vanguard FTSE Europe ETF,International Equity,Europe,VGK,vgk.us,European equities,2010-01-01,4142,2010-01-04,2026-06-23,True,included
+EWJ,iShares MSCI Japan ETF,International Equity,Japan,EWJ,ewj.us,Japanese equities,2010-01-01,4142,2010-01-04,2026-06-23,True,included
+EWZ,iShares MSCI Brazil ETF,International Equity,Brazil,EWZ,ewz.us,Brazilian equities,2010-01-01,4142,2010-01-04,2026-06-23,True,included
+FXI,iShares China Large-Cap ETF,International Equity,China,FXI,fxi.us,Chinese large-cap equities,2010-01-01,4142,2010-01-04,2026-06-23,True,included
+INDA,iShares MSCI India ETF,International Equity,India,INDA,inda.us,Indian equities,2010-01-01,4142,2010-01-04,2026-06-23,True,included
+EWU,iShares MSCI United Kingdom ETF,International Equity,UK,EWU,ewu.us,United Kingdom equities,2010-01-01,4142,2010-01-04,2026-06-23,True,included
+EWC,iShares MSCI Canada ETF,International Equity,Canada,EWC,ewc.us,Canadian equities,2010-01-01,4142,2010-01-04,2026-06-23,True,included
+EWA,iShares MSCI Australia ETF,International Equity,Australia,EWA,ewa.us,Australian equities,2010-01-01,4142,2010-01-04,2026-06-23,True,included
+TLT,iShares 20+ Year Treasury Bond ETF,Fixed Income,US,TLT,tlt.us,Long-duration Treasury risk,2010-01-01,4142,2010-01-04,2026-06-23,True,included
+IEF,iShares 7-10 Year Treasury Bond ETF,Fixed Income,US,IEF,ief.us,Intermediate Treasury risk,2010-01-01,4142,2010-01-04,2026-06-23,True,included
+SHY,iShares 1-3 Year Treasury Bond ETF,Fixed Income,US,SHY,shy.us,Short-duration Treasury risk,2010-01-01,4142,2010-01-04,2026-06-23,True,included
+TIP,iShares TIPS Bond ETF,Fixed Income,US,TIP,tip.us,Inflation-linked Treasuries,2010-01-01,4142,2010-01-04,2026-06-23,True,included
+BND,Vanguard Total Bond Market ETF,Fixed Income,US,BND,bnd.us,Aggregate bond market,2010-01-01,4142,2010-01-04,2026-06-23,True,included
+LQD,iShares iBoxx Investment Grade Corporate Bond ETF,Fixed Income,US,LQD,lqd.us,Investment-grade credit,2010-01-01,4142,2010-01-04,2026-06-23,True,included
+HYG,iShares iBoxx High Yield Corporate Bond ETF,Fixed Income,US,HYG,hyg.us,High-yield credit,2010-01-01,4142,2010-01-04,2026-06-23,True,included
+JNK,SPDR Bloomberg High Yield Bond ETF,Fixed Income,US,JNK,jnk.us,High-yield credit cross-check,2010-01-01,4142,2010-01-04,2026-06-23,True,included
+EMB,iShares JP Morgan USD Emerging Markets Bond ETF,Fixed Income,Emerging,EMB,emb.us,Emerging-market sovereign debt,2010-01-01,4142,2010-01-04,2026-06-23,True,included
+AGG,iShares Core US Aggregate Bond ETF,Fixed Income,US,AGG,agg.us,Aggregate US bonds,2010-01-01,4142,2010-01-04,2026-06-23,True,included
+MUB,iShares National Muni Bond ETF,Fixed Income,US,MUB,mub.us,Municipal bonds,2010-01-01,4142,2010-01-04,2026-06-23,True,included
+GLD,SPDR Gold Shares,Commodity,Global,GLD,gld.us,Gold proxy,2010-01-01,4142,2010-01-04,2026-06-23,True,included
+SLV,iShares Silver Trust,Commodity,Global,SLV,slv.us,Silver proxy,2010-01-01,4142,2010-01-04,2026-06-23,True,included
+USO,United States Oil Fund,Commodity,Global,USO,uso.us,Oil futures proxy,2010-01-01,4142,2010-01-04,2026-06-23,True,included
+UNG,United States Natural Gas Fund,Commodity,Global,UNG,ung.us,Natural gas proxy,2010-01-01,4142,2010-01-04,2026-06-23,True,included
+DBA,Invesco DB Agriculture Fund,Commodity,Global,DBA,dba.us,Agriculture basket,2010-01-01,4142,2010-01-04,2026-06-23,True,included
+CPER,United States Copper Index Fund,Commodity,Global,CPER,cper.us,Copper proxy,2010-01-01,4142,2010-01-04,2026-06-23,True,included
+PPLT,abrdn Physical Platinum Shares ETF,Commodity,Global,PPLT,pplt.us,Platinum proxy,2010-01-01,4142,2010-01-04,2026-06-23,True,included
+PALL,abrdn Physical Palladium Shares ETF,Commodity,Global,PALL,pall.us,Palladium proxy,2010-01-01,4142,2010-01-04,2026-06-23,True,included
+VNQ,Vanguard Real Estate ETF,Property,US,VNQ,vnq.us,Listed US real estate,2010-01-01,4142,2010-01-04,2026-06-23,True,included
+IYR,iShares US Real Estate ETF,Property,US,IYR,iyr.us,Listed US real estate cross-check,2010-01-01,4142,2010-01-04,2026-06-23,True,included
+IFRA,iShares US Infrastructure ETF,Infrastructure,US,IFRA,ifra.us,US infrastructure,2018-04-03,4142,2010-01-04,2026-06-23,True,included
+UUP,Invesco DB US Dollar Index Bullish Fund,Currency,US,UUP,uup.us,US dollar proxy,2010-01-01,5482,2010-01-04,2026-06-23,True,included
+FXE,Invesco CurrencyShares Euro Trust,Currency,Europe,FXE,fxe.us,Euro proxy,2010-01-01,5482,2010-01-04,2026-06-23,True,included
+FXY,Invesco CurrencyShares Japanese Yen Trust,Currency,Japan,FXY,fxy.us,Yen proxy,2010-01-01,5482,2010-01-04,2026-06-23,True,included
+FXB,Invesco CurrencyShares British Pound Sterling Trust,Currency,UK,FXB,fxb.us,Pound proxy,2010-01-01,5482,2010-01-04,2026-06-23,True,included
+FXA,Invesco CurrencyShares Australian Dollar Trust,Currency,Australia,FXA,fxa.us,Australian dollar proxy,2010-01-01,5482,2010-01-04,2026-06-23,True,included
+FXC,Invesco CurrencyShares Canadian Dollar Trust,Currency,Canada,FXC,fxc.us,Canadian dollar proxy,2010-01-01,5482,2010-01-04,2026-06-23,True,included
+BTC-USD,Bitcoin USD,Crypto,Global,BTC-USD,,Crypto market benchmark,2014-09-17,5482,2010-01-04,2026-06-23,True,included
+ETH-USD,Ethereum USD,Crypto,Global,ETH-USD,,Large-cap smart-contract crypto,2017-11-09,5482,2010-01-04,2026-06-23,True,included
+SOL-USD,Solana USD,Crypto,Global,SOL-USD,,High-throughput crypto network,2020-04-11,5482,2010-01-04,2026-06-23,True,included
+XRP-USD,XRP USD,Crypto,Global,XRP-USD,,Large-cap payment token,2014-02-19,5482,2010-01-04,2026-06-23,True,included
+ADA-USD,Cardano USD,Crypto,Global,ADA-USD,,Smart-contract crypto,2017-11-10,5482,2010-01-04,2026-06-23,True,included
+DOGE-USD,Dogecoin USD,Crypto,Global,DOGE-USD,,Large-cap meme crypto,2017-11-09,5482,2010-01-04,2026-06-23,True,included
+LTC-USD,Litecoin USD,Crypto,Global,LTC-USD,,Mature payment crypto,2014-09-17,5482,2010-01-04,2026-06-23,True,included
+BCH-USD,Bitcoin Cash USD,Crypto,Global,BCH-USD,,Bitcoin fork crypto,2017-07-23,5482,2010-01-04,2026-06-23,True,included
+LINK-USD,Chainlink USD,Crypto,Global,LINK-USD,,Oracle network crypto,2017-09-20,5482,2010-01-04,2026-06-23,True,included
+AVAX-USD,Avalanche USD,Crypto,Global,AVAX-USD,,Layer-one crypto,2020-09-23,5482,2010-01-04,2026-06-23,True,included
+DOT-USD,Polkadot USD,Crypto,Global,DOT-USD,,Interoperability crypto,2020-08-20,5482,2010-01-04,2026-06-23,True,included
+XLM-USD,Stellar USD,Crypto,Global,XLM-USD,,Payment network crypto,2014-09-17,5482,2010-01-04,2026-06-23,True,included
+UNI-USD,Uniswap USD,Crypto,Global,UNI-USD,,Decentralised exchange token,2020-09-17,5482,2010-01-04,2026-06-23,True,included
+XBI,SPDR S&P Biotech ETF,Equity Sector,US,XBI,xbi.us,Additional liquid sector instrument,2010-01-01,5482,2010-01-04,2026-06-23,True,included

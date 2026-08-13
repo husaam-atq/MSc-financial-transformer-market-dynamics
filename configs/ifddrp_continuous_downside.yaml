@@ -1,0 +1,83 @@
+ifddrp_continuous_downside:
+  protocol_version: 1
+  frozen_before_result_inspection: true
+  evidence_class: historical_held_out_but_adaptive
+  target:
+    name: target_future_maximum_loss_10d
+    definition: maximum_origin_to_path_total_return_loss_over_t_plus_1_to_t_plus_10
+    horizon: 10
+    price: adjusted_close_with_close_fallback
+    price_source_rule: use_complete_positive_adjusted_close_per_asset_otherwise_complete_positive_raw_close
+    prohibit_row_level_price_source_switching: true
+    floor_at_zero: true
+  lookback: 60
+  fold: 3
+  purge: 18
+  embargo: 1
+  seeds: [7, 42, 123]
+  model_families: [mlp, transformer_encoder]
+  variants: [no_id_temporal, asset_intercept_dynamic_residual]
+  comparators:
+    - training_asset_mean
+    - recent_volatility_10d
+    - recent_drawdown_60d
+    - ridge_sequence_summary
+  models:
+    mlp:
+      hidden_size: 96
+      num_layers: 2
+      dropout: 0.3
+    transformer_encoder:
+      hidden_size: 128
+      num_layers: 2
+      transformer_heads: 4
+      transformer_ff_multiplier: 2
+      transformer_pooling: temporal_attention
+      max_length: 1024
+      dropout: 0.3
+  target_scaling:
+    method: global_standardisation
+    fit: training_endpoints_only
+    inverse_transform_before_all_reported_metrics: true
+  training:
+    batch_size: 1024
+    epochs: 12
+    learning_rate: 0.0003
+    weight_decay: 0.0001
+    gradient_clip_norm: 1.0
+    early_stopping_patience: 3
+    lr_scheduler_patience: 2
+    lr_scheduler_factor: 0.5
+    mixed_precision: true
+    deterministic: true
+    regression_loss: mse
+    sampling: equal_asset
+  perturbations:
+    methods: [reverse, deterministic_permutation, circular_shift]
+    seed: 20260803
+    preserve_forecast_origin_row: true
+  evaluation:
+    primary_metric: equal_asset_mae
+    supporting_metrics: [mae, rmse, spearman, tail_mae, top_decile_risk_enrichment]
+    nonoverlap_stride: 10
+    date_block_length: 20
+    bootstrap_iterations: 1000
+    bootstrap_seed: 20260805
+    predefined_subperiods:
+      - [2025-03-15, 2025-09-14]
+      - [2025-09-15, 2026-06-13]
+  promotion_gate:
+    minimum_mae_reduction_over_best_simple_fraction: 0.02
+    minimum_spearman: 0.10
+    minimum_spearman_lower_95ci: 0.00
+    minimum_each_order_mae_deterioration_fraction: 0.01
+    minimum_seed_improvement_count: 2
+    prediction_support: [0.0, 1.0]
+  practical_use_gate:
+    requires_promotion_gate: true
+    no_trading_strategy: true
+  prohibited_adaptation:
+    - no_hyperparameter_search
+    - no_architecture_addition_after_scores
+    - no_test_selected_target_transform
+    - no_alternative_horizon

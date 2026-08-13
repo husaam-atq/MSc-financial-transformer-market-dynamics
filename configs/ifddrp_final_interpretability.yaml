@@ -1,0 +1,95 @@
+ifddrp_final_interpretability:
+  protocol_version: 1
+  evidence_class: post_hoc_robustness_on_opened_historical_test
+  authoritative_variant: corrected_asset_conditioned
+  identity_control_variant: no_explicit_asset_id
+  seeds: [7, 42, 123]
+  lookback: 60
+  forecast_horizon: 10
+  sample:
+    selection: deterministic_equal_family_without_outcome_stratification
+    per_family: 24
+    integrated_gradients_per_family: 8
+  feature_methods:
+    - train_mean_scaled_zero_occlusion
+    - within_window_circular_shift
+    - integrated_gradients_raw_logit
+  feature_groups:
+    returns_momentum:
+      - return_close
+      - log_return
+      - open_close_return
+      - overnight_gap
+      - cum_return_5d
+      - cum_return_20d
+      - ma_distance_20d
+      - ma_crossover_5_20d
+      - rsi_14d
+      - macd_12_26
+      - rolling_drawdown_60d
+      - distance_from_20d_high
+      - distance_from_60d_high
+      - negative_return_streak
+      - downside_move_indicator
+    volatility:
+      - volatility_5d
+      - volatility_10d
+      - volatility_20d
+      - downside_volatility_20d
+      - ewma_volatility_20d
+    range_dispersion:
+      - high_low_range
+      - intraday_range_proxy
+      - rolling_high_low_range_20d
+    volume_liquidity:
+      - volume_change
+      - volume_zscore_20d
+      - volume_ma_ratio_20d
+      - price_volume_interaction
+    macro_context:
+      - DFF
+      - DGS2
+      - DGS10
+      - T10Y2Y
+      - VIXCLS
+      - BAMLH0A0HYM2
+      - DTWEXBGS
+  integrated_gradients:
+    baseline: train_mean_scaled_zero
+    steps: 32
+  lag_blocks:
+    distant_days_41_60: [0, 20]
+    middle_days_21_40: [20, 40]
+    recent_days_1_20: [40, 60]
+  safe_temporal_controls:
+    methods: [reverse, deterministic_permutation, circular_shift]
+    preserve_forecast_origin_row: true
+    seed: 20260803
+  sanity:
+    parameter_randomisation_seed: 20260808
+    label_permutations: 500
+    maximum_trained_random_attribution_rank_correlation: 0.5
+    minimum_attribution_occlusion_rank_correlation: 0.3
+  regimes:
+    volatility_feature: volatility_20d
+    volatility_training_quantile: 0.5
+    current_stress_feature: rolling_drawdown_60d
+    current_stress_training_quantile: 0.1
+    broad_trend_feature: cum_return_20d
+    test_subperiods:
+      early: [2025-03-15, 2025-09-14]
+      late: [2025-09-15, 2026-06-13]
+    date_block_length: 20
+    bootstrap_iterations: 500
+    bootstrap_seed: 20260808
+  promotion_gate:
+    minimum_pair_weighted_within_asset_auc: 0.55
+    minimum_incremental_auc_over_static_prior: 0.02
+    minimum_each_temporal_auc_drop: 0.02
+    require_dependence_aware_lower_bound_above_chance: true
+    require_seed_stability: true
+  exclusions:
+    - attention_is_not_explanation
+    - no_causal_feature_claims
+    - no_positive_macro_claim_under_current_vintage_or_missingness_limitations
+    - no_latent_change_point_analysis_without_dynamic_skill_gate

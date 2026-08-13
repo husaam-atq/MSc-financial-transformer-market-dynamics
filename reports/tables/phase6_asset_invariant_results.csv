@@ -1,0 +1,2 @@
+experiment,status,run_count,decision,evidence,reason
+gradient_reversal_asset_invariance,rejected,0,not_run,"corrected pair-weighted within-asset ROC-AUC=0.4982; no-ID=0.4783","A new adversarial loss after opening the test set would be architecture and objective shopping; there is no demonstrated head-level temporal signal to preserve."

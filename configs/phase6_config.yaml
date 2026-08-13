@@ -1,0 +1,75 @@
+phase6:
+  description: >-
+    Bounded post-v4 falsification of temporal Transformer value beyond static
+    asset priors. Historical and fresh evidence remain immutable and opened.
+  device: auto
+  target: target_stress_10d
+  lookback: 60
+  fold: 3
+  corrected_purge: 18
+  seeds: [7, 42, 123]
+  model:
+    model: transformer_encoder
+    hidden_size: 128
+    dropout: 0.3
+    num_layers: 2
+    transformer_heads: 4
+    transformer_ff_multiplier: 2
+    asset_embedding_dim: 12
+    max_length: 1024
+    transformer_pooling: temporal_attention
+  training:
+    mixed_precision: true
+    batch_size: 1024
+    epochs: 12
+    learning_rate: 0.0003
+    weight_decay: 0.0001
+    gradient_clip_norm: 1.0
+    early_stopping_patience: 3
+    lr_scheduler_patience: 2
+    lr_scheduler_factor: 0.5
+    num_workers: 0
+    deterministic: true
+    classification_loss: soft_f1
+    use_pos_weight: false
+  variants:
+    legacy_target_purge18:
+      enabled: true
+      run_budget: 3
+    corrected_asset_conditioned:
+      enabled: true
+      run_budget: 3
+    no_explicit_asset_id:
+      enabled: true
+      run_budget: 3
+    no_macro:
+      enabled: true
+      run_budget: 3
+    asset_invariant:
+      enabled: conditional
+      nuisance: asset_family
+      development_lambdas: [0.05, 0.2]
+      development_seed: 42
+      finalist_seeds: [7, 42, 123]
+  calibration:
+    methods: [raw, temperature, platt, isotonic]
+    selection: validation_brier_then_log_loss_then_ece
+    threshold_metric: f1
+    threshold_grid_size: 101
+    bins: 10
+  perturbations:
+    methods: [reverse, deterministic_permutation, circular_shift]
+    seed: 20260712
+  evaluation:
+    nonoverlap_stride: 10
+    date_block_size: 20
+    bootstrap_iterations: 500
+    bootstrap_seed: 20260712
+    event_definition: contiguous_positive_labels_per_asset
+  historical_reference:
+    run_dir: results/runs/phase4_stress_final_20260710
+    prediction_file: predictions/phase4_full_eligible_refit_stress_ensemble.parquet
+    candidate: full_attention_pool_lb60
+    historical_test_status: opened_adaptive_historical_evidence
+  fresh_holdout:
+    status: opened_read_only_not_for_selection
