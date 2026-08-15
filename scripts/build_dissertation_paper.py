@@ -8,9 +8,8 @@ only from frozen summary tables or explicitly registered values.
 from __future__ import annotations
 
 import argparse
-import csv
 import re
-from collections.abc import Iterable
+import sys
 from pathlib import Path
 
 import matplotlib
@@ -28,10 +27,25 @@ from docx.shared import Inches, Pt, RGBColor
 from matplotlib.patches import FancyArrowPatch, FancyBboxPatch
 
 ROOT = Path(__file__).resolve().parents[1]
+SRC_DIR = ROOT / "src"
+if str(SRC_DIR) not in sys.path:
+    sys.path.insert(0, str(SRC_DIR))
+
+from market_dynamics.reporting.dissertation_figures import (  # noqa: E402
+    METHODOLOGY_FIGURE_DATA,
+    load_core_results,
+    load_simulation_figure_data,
+)
+
 DEFAULT_SOURCE = ROOT / "reports" / "paper" / "draft_dissertation_paper_v4.md"
 DEFAULT_OUTPUT = ROOT / "reports" / "paper" / "draft_dissertation_paper_v4.docx"
 DEFAULT_ARTIFACTS = ROOT / "results" / "dissertation_build" / "v4"
 SIMULATION_TABLE = ROOT / "reports" / "tables" / "prp1_study_a_independent_simulation_results.csv"
+IDENTITY_DECOMPOSITION_TABLE = ROOT / "reports" / "tables" / "ifddrp_identity_dynamic_information_decomposition.csv"
+CROSS_MODEL_RESULTS_TABLE = ROOT / "reports" / "tables" / "prp1_fixed_cross_model_results.csv"
+
+matplotlib.rcParams["svg.hashsalt"] = "financial-dynamics-dissertation"
+matplotlib.rcParams["svg.fonttype"] = "none"
 
 TITLE = "Interpretable Transformer Models for Financial Time Series Forecasting: Discovering Emergent Market Dynamics"
 AUTHOR = "Husaam Ateeq"
@@ -301,180 +315,358 @@ def _add_inline_markdown(paragraph, text: str, *, size: float | None = None) -> 
             run.font.size = Pt(size)
 
 
-def _read_simulation_rows(path: Path) -> list[dict[str, str]]:
-    with path.open("r", encoding="utf-8", newline="") as handle:
-        return list(csv.DictReader(handle))
-
-
-def _float(row: dict[str, str], key: str) -> float:
-    return float(row[key])
-
-
 def _make_methodology_figure(path: Path, edition: str) -> None:
-    polished = edition in {"v2", "v3", "v4"}
     full_budget = edition in {"v3", "v4"}
-    fig_size = (3.38, 3.60) if full_budget else ((3.35, 3.42) if polished else (3.28, 3.35))
-    fig, ax = plt.subplots(figsize=fig_size, dpi=280 if full_budget else (260 if polished else 240))
+    data = METHODOLOGY_FIGURE_DATA
+    fig_size = (3.38, 4.25) if full_budget else (3.35, 4.15)
+    fig, ax = plt.subplots(figsize=fig_size, dpi=320)
     ax.set_xlim(0, 1)
     ax.set_ylim(0, 1)
     ax.axis("off")
 
     boxes = (
-        [
-            (0.50, 0.89, "60 observed sessions\nending at close t", TEAL),
-            (0.50, 0.71, "34 scaled channels\n27 market + 7 context\n+ 12-D learned asset identity", BLUE),
-            (0.50, 0.53, "2-layer Transformer\n272,449 parameters", INK),
-            (0.50, 0.35, "Adverse-event probability\nfrom sessions t+1 to t+10", RED),
-        ]
-        if polished
-        else [
-            (0.50, 0.89, "60 observed sessions\nthrough close t", TEAL),
-            (0.50, 0.71, "34 scaled channels\n+ 12-D asset identity", BLUE),
-            (0.50, 0.53, "2-layer Transformer\n272,449 parameters", INK),
-            (0.50, 0.35, "Probability of adverse event\nover sessions t+1 ... t+10", RED),
-        ]
+        (0.915, 0.105, f"{data.lookback} observed sessions\nending at close t", TEAL),
+        (
+            0.755,
+            0.135,
+            f"{data.numerical_channels} scaled numerical channels\n"
+            f"{data.market_channels} market + {data.context_channels} context\n"
+            f"+ {data.asset_embedding_dim}-D learned asset embedding",
+            BLUE,
+        ),
+        (
+            0.575,
+            0.105,
+            f"{data.encoder_layers}-layer Transformer\n{data.parameters:,} parameters",
+            INK,
+        ),
+        (
+            0.405,
+            0.105,
+            "Adverse-event probability\n"
+            f"for sessions t+1 to t+{data.forecast_horizon}",
+            RED,
+        ),
     )
-    for x, y, label, colour in boxes:
+    for y, height, label, colour in boxes:
         patch = FancyBboxPatch(
-            (x - 0.31, y - 0.065),
-            0.62,
-            0.13,
-            boxstyle="round,pad=0.012,rounding_size=0.014",
+            (0.15, y - height / 2),
+            0.70,
+            height,
+            boxstyle="round,pad=0.008,rounding_size=0.012",
             facecolor=colour,
             edgecolor="white",
             linewidth=0.8,
         )
         ax.add_patch(patch)
-        label_font = 7.9 if full_budget else (7.5 if polished else 7.2)
-        ax.text(x, y, label, ha="center", va="center", color="white", fontsize=label_font, weight="bold")
-    for y1, y2 in ((0.825, 0.775), (0.645, 0.595), (0.465, 0.415)):
-        ax.add_patch(FancyArrowPatch((0.5, y1), (0.5, y2), arrowstyle="-|>", mutation_scale=8, color=MID))
+        ax.text(
+            0.50,
+            y,
+            label,
+            ha="center",
+            va="center",
+            color="white",
+            fontsize=7.7 if full_budget else 7.4,
+            weight="bold",
+            linespacing=1.18,
+        )
+    for y1, y2 in ((0.855, 0.829), (0.682, 0.642), (0.518, 0.468)):
+        ax.add_patch(
+            FancyArrowPatch(
+                (0.5, y1),
+                (0.5, y2),
+                arrowstyle="-|>",
+                mutation_scale=8,
+                color=MID,
+                linewidth=0.9,
+            )
+        )
 
-    title_font = 8.0 if full_budget else (7.7 if polished else 7.2)
-    ax.text(0.02, 0.225, "Corrected chronological evaluation", fontsize=title_font, weight="bold", color=INK)
-    segments = [
-        (0.03, 0.53, TEAL, "Train\n2010-2023"),
-        (0.53, 0.59, GOLD, "gap"),
-        (0.59, 0.76, BLUE, "Validation\n2023-2025"),
-        (0.76, 0.82, GOLD, "gap"),
-        (0.82, 0.98, RED, "Test\n2025-2026"),
-    ]
-    y0, height = 0.09, 0.095
+    ax.text(
+        0.03,
+        0.322,
+        "Corrected chronological evaluation",
+        fontsize=8.1 if full_budget else 7.8,
+        weight="bold",
+        color=INK,
+    )
+
+    timeline_y = 0.247
+    timeline_height = 0.060
+    first_boundary = 0.535
+    second_boundary = 0.775
+    purge_width = 0.027
+    embargo_width = 0.018
+    segments = (
+        (0.035, first_boundary - purge_width, TEAL, "Train\n2010–2023"),
+        (first_boundary - purge_width, first_boundary, GOLD, ""),
+        (first_boundary, first_boundary + embargo_width, "#E3BD69", ""),
+        (first_boundary + embargo_width, second_boundary - purge_width, BLUE, "Validation\n2023–2025"),
+        (second_boundary - purge_width, second_boundary, GOLD, ""),
+        (second_boundary, second_boundary + embargo_width, "#E3BD69", ""),
+        (second_boundary + embargo_width, 0.965, RED, "Test\n2025–2026"),
+    )
     for left, right, colour, label in segments:
-        ax.add_patch(FancyBboxPatch((left, y0), right - left, height, boxstyle="square,pad=0", facecolor=colour, edgecolor="white", linewidth=0.5))
-        segment_font = 6.4 if full_budget else (6.1 if polished else 5.8)
-        ax.text((left + right) / 2, y0 + height / 2, label, ha="center", va="center", color="white", fontsize=segment_font, weight="bold")
-    footer_font = 6.9 if full_budget else (6.6 if polished else 6.2)
-    ax.text(0.5, 0.025, "Each boundary: purge 18 global dates; embargo 1 date", ha="center", fontsize=footer_font, color=INK)
+        ax.add_patch(
+            FancyBboxPatch(
+                (left, timeline_y),
+                right - left,
+                timeline_height,
+                boxstyle="square,pad=0",
+                facecolor=colour,
+                edgecolor="white",
+                linewidth=0.45,
+            )
+        )
+        if label:
+            ax.text(
+                (left + right) / 2,
+                timeline_y + timeline_height / 2,
+                label,
+                ha="center",
+                va="center",
+                color="white",
+                fontsize=6.6 if full_budget else 6.3,
+                weight="bold",
+                linespacing=1.05,
+            )
 
-    fig.tight_layout(pad=0.25)
-    fig.savefig(path, bbox_inches="tight", facecolor="white")
+    callouts = (
+        (0.04, 0.46, "Train → Validation", first_boundary),
+        (0.54, 0.96, "Validation → Test", second_boundary),
+    )
+    for left, right, heading, boundary in callouts:
+        ax.plot(
+            [boundary, (left + right) / 2],
+            [timeline_y, 0.183],
+            color=GOLD,
+            linewidth=0.8,
+            clip_on=False,
+        )
+        ax.axvline(
+            boundary,
+            ymin=timeline_y,
+            ymax=timeline_y + timeline_height,
+            color=INK,
+            linewidth=0.75,
+        )
+        ax.add_patch(
+            FancyBboxPatch(
+                (left, 0.077),
+                right - left,
+                0.106,
+                boxstyle="round,pad=0.005,rounding_size=0.008",
+                facecolor="#F8F3E7",
+                edgecolor=GOLD,
+                linewidth=0.7,
+            )
+        )
+        ax.text(
+            (left + right) / 2,
+            0.158,
+            heading,
+            ha="center",
+            va="center",
+            fontsize=6.5,
+            weight="bold",
+            color=INK,
+        )
+        ax.text(
+            (left + right) / 2,
+            0.126,
+            f"{data.purge_dates}-date purge before",
+            ha="center",
+            va="center",
+            fontsize=6.3,
+            color="#8A5A00",
+        )
+        ax.text(
+            (left + right) / 2,
+            0.096,
+            f"{data.embargo_dates}-date embargo after",
+            ha="center",
+            va="center",
+            fontsize=6.3,
+            color="#8A5A00",
+        )
+
+    ax.text(
+        0.50,
+        0.024,
+        f"Interval audit: {data.audited_boundary_crossings} split-boundary crossings",
+        ha="center",
+        fontsize=6.6,
+        color=INK,
+    )
+
+    fig.subplots_adjust(left=0.02, right=0.98, bottom=0.01, top=0.99)
+    _save_publication_figure(fig, path, "Forecast design and chronological evaluation")
     plt.close(fig)
 
 
 def _make_core_results_figure(path: Path, edition: str) -> None:
-    polished = edition in {"v2", "v3", "v4"}
     full_budget = edition in {"v3", "v4"}
-    labels = ["Static asset\nprior", "MLP", "Transformer", "Transformer\n(no ID)"]
-    pooled = [0.823905856, 0.796477661, 0.789813558, 0.715476655]
-    within = [0.5, 0.556966922, 0.491638470, 0.472570086]
+    results = load_core_results(IDENTITY_DECOMPOSITION_TABLE, CROSS_MODEL_RESULTS_TABLE)
+    labels = [result.label for result in results]
+    pooled = [result.pooled_auc for result in results]
+    within = [result.within_asset_auc for result in results]
 
-    fig_size = (3.38, 3.05) if full_budget else ((3.35, 2.68) if polished else (3.28, 2.55))
-    fig, ax = plt.subplots(figsize=fig_size, dpi=280 if full_budget else (260 if polished else 240))
+    fig_size = (3.38, 2.80) if full_budget else (3.35, 2.70)
+    fig, ax = plt.subplots(figsize=fig_size, dpi=320)
     y = list(range(len(labels)))
     offset = 0.18
-    ax.barh([value + offset for value in y], pooled, height=0.32, label="Pooled", color=TEAL)
-    ax.barh([value - offset for value in y], within, height=0.32, label="Within asset", color=GOLD)
-    ax.axvline(0.5, color=INK, linewidth=0.8, linestyle="--")
-    ax.text(0.502, -0.72, "chance", fontsize=6.5 if full_budget else 6, color=INK, va="center")
-    ax.set_xlim(0.44, 0.85)
+    pooled_bars = ax.barh(
+        [value + offset for value in y],
+        pooled,
+        height=0.30,
+        label="Pooled",
+        color=TEAL,
+    )
+    within_bars = ax.barh(
+        [value - offset for value in y],
+        within,
+        height=0.30,
+        label="Within-asset",
+        color=GOLD,
+    )
+    ax.axvline(0.5, color=INK, linewidth=0.8, linestyle="--", zorder=0)
+    ax.text(0.503, 3.50, "chance", fontsize=6.3, color=INK, va="bottom")
+    ax.set_xlim(0.44, 0.875)
+    ax.set_ylim(3.60, -0.55)
     ax.set_xticks([0.5, 0.6, 0.7, 0.8])
-    axis_font = 8.0 if full_budget else (7.6 if polished else 7)
-    label_font = 8.1 if full_budget else (7.5 if polished else 7)
+    axis_font = 8.0 if full_budget else 7.6
+    label_font = 7.8 if full_budget else 7.4
     ax.set_xlabel("ROC-AUC", fontsize=axis_font)
     ax.set_yticks(y, labels, fontsize=label_font)
-    ax.invert_yaxis()
-    ax.tick_params(axis="x", labelsize=7.5 if full_budget else (7.0 if polished else 6.5))
+    ax.tick_params(axis="x", labelsize=7.3 if full_budget else 7.0)
     ax.grid(axis="x", alpha=0.2, linewidth=0.5)
     ax.spines[["top", "right", "left"]].set_visible(False)
-    ax.legend(frameon=False, fontsize=7.5 if full_budget else (7.0 if polished else 6.5), loc="upper center", bbox_to_anchor=(0.5, 1.10), ncol=2)
+    fig.legend(
+        (pooled_bars, within_bars),
+        ("Pooled", "Within-asset"),
+        frameon=False,
+        fontsize=7.4 if full_budget else 7.0,
+        loc="upper center",
+        bbox_to_anchor=(0.60, 0.985),
+        ncol=2,
+        columnspacing=1.5,
+        handlelength=1.6,
+    )
     if full_budget:
         ax.get_yticklabels()[0].set_fontweight("bold")
     for row, (pooled_value, within_value) in enumerate(zip(pooled, within, strict=True)):
-        value_font = 6.8 if full_budget else (6.4 if polished else 5.8)
-        ax.text(pooled_value + 0.005, row + offset, f"{pooled_value:.3f}", va="center", fontsize=value_font, color=INK)
-        ax.text(within_value + 0.005, row - offset, f"{within_value:.3f}", va="center", fontsize=value_font, color=INK)
-    fig.tight_layout(pad=0.35)
-    fig.savefig(path, bbox_inches="tight", facecolor="white")
+        value_font = 6.8 if full_budget else 6.4
+        ax.text(
+            pooled_value + 0.006,
+            row + offset,
+            f"{pooled_value:.3f}",
+            va="center",
+            fontsize=value_font,
+            color=INK,
+        )
+        ax.text(
+            max(within_value + 0.006, 0.507),
+            row - offset,
+            f"{within_value:.3f}",
+            va="center",
+            fontsize=value_font,
+            color=INK,
+            bbox={"facecolor": "white", "edgecolor": "none", "pad": 0.2, "alpha": 0.88},
+        )
+    fig.subplots_adjust(left=0.34, right=0.97, bottom=0.14, top=0.85)
+    _save_publication_figure(fig, path, "Pooled versus within-asset ROC-AUC")
     plt.close(fig)
 
 
-def _select_core(rows: Iterable[dict[str, str]], *, dynamic: float, persistence: float) -> list[dict[str, str]]:
-    selected = [
-        row
-        for row in rows
-        if row["scenario"] == "core"
-        and abs(_float(row, "dynamic_signal") - dynamic) < 1e-9
-        and abs(_float(row, "persistence") - persistence) < 1e-9
-    ]
-    return sorted(selected, key=lambda row: _float(row, "prior_heterogeneity"))
-
-
 def _make_simulation_figure(path: Path, edition: str) -> None:
-    polished = edition in {"v2", "v3", "v4"}
     full_budget = edition in {"v3", "v4"}
-    rows = _read_simulation_rows(SIMULATION_TABLE)
-    no_signal = _select_core(rows, dynamic=0.0, persistence=0.7)
-    no_heterogeneity = sorted(
-        [
-            row
-            for row in rows
-            if row["scenario"] == "core"
-            and abs(_float(row, "prior_heterogeneity")) < 1e-9
-            and abs(_float(row, "persistence") - 0.7) < 1e-9
-        ],
-        key=lambda row: _float(row, "dynamic_signal"),
-    )
+    data = load_simulation_figure_data(SIMULATION_TABLE)
 
-    heterogeneity = [_float(row, "prior_heterogeneity") for row in no_signal]
-    prior_auc = [_float(row, "asset_prior_pooled_roc_auc_mean") for row in no_signal]
-    no_signal_within = [_float(row, "pooled_classifier_pair_weighted_within_asset_roc_auc_mean") for row in no_signal]
-
-    dynamics = [_float(row, "dynamic_signal") for row in no_heterogeneity]
-    dynamic_within = [_float(row, "pooled_classifier_pair_weighted_within_asset_roc_auc_mean") for row in no_heterogeneity]
-    reversal = [_float(row, "reversal_auc_drop_mean") for row in no_heterogeneity]
-
-    fig_size = (3.38, 4.85) if full_budget else ((3.35, 4.25) if polished else (3.28, 3.75))
-    fig, axes = plt.subplots(2, 1, figsize=fig_size, dpi=280 if full_budget else (260 if polished else 240))
+    fig_size = (3.38, 4.75) if full_budget else (3.35, 4.45)
+    fig, axes = plt.subplots(2, 1, figsize=fig_size, dpi=320)
     top, bottom = axes
-    top.plot(heterogeneity, prior_auc, marker="o", color=RED, linewidth=1.8 if polished else 1.5, label="Static-prior pooled AUC" if polished else "Static prior: pooled AUC")
-    top.plot(heterogeneity, no_signal_within, marker="s", color=TEAL, linewidth=1.8 if polished else 1.5, label="Classifier within-asset AUC" if polished else "Classifier: within AUC")
+    top.plot(
+        data.prior_heterogeneity,
+        data.static_prior_pooled_auc,
+        marker="o",
+        color=RED,
+        linewidth=1.8,
+        label="Static-prior pooled AUC",
+    )
+    top.plot(
+        data.prior_heterogeneity,
+        data.no_signal_within_asset_auc,
+        marker="s",
+        color=TEAL,
+        linewidth=1.8,
+        label="Classifier within-asset AUC",
+    )
     top.axhline(0.5, color=INK, linewidth=0.7, linestyle="--")
     top.set_ylim(0.45, 0.94)
-    axis_font = 8.4 if full_budget else (8.0 if polished else 7)
-    title_font = 9.0 if full_budget else (8.6 if polished else 7.5)
-    legend_font = 7.2 if full_budget else (6.8 if polished else 5.8)
+    axis_font = 8.2 if full_budget else 7.9
+    title_font = 8.8 if full_budget else 8.4
+    legend_font = 6.9 if full_budget else 6.6
     top.set_ylabel("ROC-AUC", fontsize=axis_font)
     top.set_xlabel("Prior heterogeneity", fontsize=axis_font)
     top.set_title("A. No planted temporal signal", fontsize=title_font, loc="left", weight="bold")
     top.legend(frameon=False, fontsize=legend_font, loc="upper left")
 
-    bottom.plot(dynamics, dynamic_within, marker="o", color=TEAL, linewidth=1.8 if polished else 1.5, label="Within-asset AUC")
-    bottom.plot(dynamics, reversal, marker="^", color=GOLD, linewidth=1.8 if polished else 1.5, label="AUC loss after reversal" if polished else "AUC drop after reversal")
+    bottom.plot(
+        data.dynamic_signal,
+        data.dynamic_within_asset_auc,
+        marker="o",
+        color=TEAL,
+        linewidth=1.8,
+        label="Within-asset AUC",
+    )
+    bottom.plot(
+        data.dynamic_signal,
+        data.reversal_auc_loss,
+        marker="^",
+        color=GOLD,
+        linewidth=1.8,
+        label="AUC loss after reversal",
+    )
     bottom.axhline(0.5, color=INK, linewidth=0.7, linestyle="--")
     bottom.set_ylim(-0.03, 0.84)
-    bottom.set_ylabel("AUC / AUC loss" if polished else "Metric", fontsize=axis_font)
+    bottom.text(
+        0.08,
+        0.478,
+        "Chance within-asset AUC = 0.5",
+        fontsize=6.3,
+        color=INK,
+        ha="left",
+        va="top",
+        bbox={"facecolor": "white", "edgecolor": "none", "pad": 0.5, "alpha": 0.88},
+    )
+    bottom.set_ylabel("AUC / AUC loss", fontsize=axis_font)
     bottom.set_xlabel("Planted dynamic signal", fontsize=axis_font)
     bottom.set_title("B. Ordered signal recovery", fontsize=title_font, loc="left", weight="bold")
     bottom.legend(frameon=False, fontsize=legend_font, loc="upper left")
 
     for ax in axes:
         ax.grid(alpha=0.2, linewidth=0.5)
-        ax.tick_params(labelsize=7.6 if full_budget else (7.2 if polished else 6.2))
+        ax.tick_params(labelsize=7.4 if full_budget else 7.0)
         ax.spines[["top", "right"]].set_visible(False)
-    fig.tight_layout(pad=0.5, h_pad=0.7)
-    fig.savefig(path, bbox_inches="tight", facecolor="white")
+    fig.subplots_adjust(left=0.18, right=0.97, bottom=0.09, top=0.96, hspace=0.52)
+    _save_publication_figure(fig, path, "Controlled simulation")
     plt.close(fig)
+
+
+def _save_publication_figure(fig, path: Path, title: str) -> None:
+    path.parent.mkdir(parents=True, exist_ok=True)
+    fig.savefig(
+        path,
+        dpi=320,
+        facecolor="white",
+        metadata={"Title": title},
+    )
+    fig.savefig(
+        path.with_suffix(".svg"),
+        format="svg",
+        facecolor="white",
+        metadata={"Title": title, "Creator": "Matplotlib", "Date": None},
+    )
 
 
 def generate_figures(artifacts: Path, edition: str) -> dict[str, Path]:
