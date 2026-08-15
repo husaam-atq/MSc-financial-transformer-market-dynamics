@@ -13,6 +13,7 @@ import sys
 from pathlib import Path
 
 import matplotlib
+import numpy as np
 
 matplotlib.use("Agg")
 import matplotlib.pyplot as plt
@@ -24,7 +25,9 @@ from docx.enum.text import WD_ALIGN_PARAGRAPH, WD_BREAK
 from docx.oxml import OxmlElement
 from docx.oxml.ns import qn
 from docx.shared import Inches, Pt, RGBColor
-from matplotlib.patches import FancyArrowPatch, FancyBboxPatch
+from matplotlib.lines import Line2D
+from matplotlib.patches import FancyArrowPatch, FancyBboxPatch, Patch
+from matplotlib.ticker import PercentFormatter
 
 ROOT = Path(__file__).resolve().parents[1]
 SRC_DIR = ROOT / "src"
@@ -32,8 +35,15 @@ if str(SRC_DIR) not in sys.path:
     sys.path.insert(0, str(SRC_DIR))
 
 from market_dynamics.reporting.dissertation_figures import (  # noqa: E402
+    CHANCE_AUC,
+    FAMILY_ORDER,
     METHODOLOGY_FIGURE_DATA,
+    PREVALENCE_EQUALITY_LINE,
+    load_appendix_cross_model_results,
+    load_asset_prevalence,
     load_core_results,
+    load_family_prevalence,
+    load_identity_order_results,
     load_simulation_figure_data,
 )
 
@@ -43,6 +53,11 @@ DEFAULT_ARTIFACTS = ROOT / "results" / "dissertation_build" / "v4"
 SIMULATION_TABLE = ROOT / "reports" / "tables" / "prp1_study_a_independent_simulation_results.csv"
 IDENTITY_DECOMPOSITION_TABLE = ROOT / "reports" / "tables" / "ifddrp_identity_dynamic_information_decomposition.csv"
 CROSS_MODEL_RESULTS_TABLE = ROOT / "reports" / "tables" / "prp1_fixed_cross_model_results.csv"
+IDENTITY_SWAP_TABLE = ROOT / "reports" / "tables" / "phase6_identity_swap_results.csv"
+TEMPORAL_ORDER_TABLE = ROOT / "reports" / "tables" / "phase6_temporal_order_destruction.csv"
+FAMILY_PREVALENCE_TABLE = ROOT / "reports" / "tables" / "phase6_target_prevalence_by_family.csv"
+ASSET_PREVALENCE_TABLE = ROOT / "reports" / "tables" / "phase6_target_prevalence_by_asset.csv"
+DAILY_FAMILY_MAP_TABLE = ROOT / "reports" / "tables" / "phase6_data_path_remediation.csv"
 
 matplotlib.rcParams["svg.hashsalt"] = "financial-dynamics-dissertation"
 matplotlib.rcParams["svg.fonttype"] = "none"
@@ -57,6 +72,23 @@ GOLD = "#C38D2E"
 BLUE = "#486A9A"
 LIGHT = "#E9F0F1"
 MID = "#70838A"
+
+FAMILY_COLOURS = {
+    "Equities": TEAL,
+    "Bonds": BLUE,
+    "Commodities": GOLD,
+    "FX": "#7568A6",
+    "Crypto": RED,
+    "Real assets": "#5C7D62",
+}
+FAMILY_LABELS = {
+    "Equities": "Equities",
+    "Bonds": "Bonds",
+    "Commodities": "Commodities",
+    "FX": "FX",
+    "Crypto": "Crypto",
+    "Real assets": "Real-asset\nproxies",
+}
 
 FIGURE_CAPTIONS = {
     "methodology": (
@@ -653,6 +685,356 @@ def _make_simulation_figure(path: Path, edition: str) -> None:
     plt.close(fig)
 
 
+def _make_appendix_cross_model_figure(path: Path, edition: str) -> None:
+    full_budget = edition in {"v3", "v4"}
+    results = load_appendix_cross_model_results(
+        IDENTITY_DECOMPOSITION_TABLE,
+        CROSS_MODEL_RESULTS_TABLE,
+    )
+    labels = [result.label for result in results]
+    pooled = [result.pooled_auc for result in results]
+    within = [result.within_asset_auc for result in results]
+
+    fig_size = (3.38, 3.75) if full_budget else (3.35, 3.60)
+    fig, ax = plt.subplots(figsize=fig_size, dpi=320)
+    y = list(range(len(results)))
+    offset = 0.17
+    pooled_bars = ax.barh(
+        [value + offset for value in y],
+        pooled,
+        height=0.29,
+        color=TEAL,
+        label="Pooled",
+    )
+    within_bars = ax.barh(
+        [value - offset for value in y],
+        within,
+        height=0.29,
+        color=GOLD,
+        label="Within-asset",
+    )
+    ax.axvline(CHANCE_AUC, color=INK, linewidth=0.8, linestyle="--", zorder=0)
+    ax.text(CHANCE_AUC + 0.003, 5.49, "chance", fontsize=6.2, color=INK, va="bottom")
+    ax.set_xlim(0.44, 0.875)
+    ax.set_ylim(5.62, -0.55)
+    ax.set_xticks([0.5, 0.6, 0.7, 0.8])
+    ax.set_xlabel("ROC-AUC", fontsize=8.0 if full_budget else 7.6)
+    ax.set_yticks(y, labels, fontsize=7.3 if full_budget else 7.0)
+    ax.tick_params(axis="x", labelsize=7.2 if full_budget else 6.9)
+    ax.grid(axis="x", alpha=0.2, linewidth=0.5)
+    ax.spines[["top", "right", "left"]].set_visible(False)
+    fig.suptitle(
+        "Cross-model pooled versus\nwithin-asset discrimination",
+        fontsize=8.4 if full_budget else 8.0,
+        weight="bold",
+        color=INK,
+        y=0.985,
+        linespacing=1.12,
+    )
+    fig.legend(
+        (pooled_bars, within_bars),
+        ("Pooled", "Within-asset"),
+        frameon=False,
+        fontsize=7.2 if full_budget else 6.9,
+        loc="upper center",
+        bbox_to_anchor=(0.60, 0.925),
+        ncol=2,
+        columnspacing=1.5,
+        handlelength=1.6,
+    )
+    ax.get_yticklabels()[0].set_fontweight("bold")
+    for row, (pooled_value, within_value) in enumerate(zip(pooled, within, strict=True)):
+        value_font = 6.6 if full_budget else 6.3
+        ax.text(
+            pooled_value + 0.006,
+            row + offset,
+            f"{pooled_value:.3f}",
+            va="center",
+            fontsize=value_font,
+            color=INK,
+        )
+        ax.text(
+            max(within_value + 0.006, 0.507),
+            row - offset,
+            f"{within_value:.3f}",
+            va="center",
+            fontsize=value_font,
+            color=INK,
+            bbox={"facecolor": "white", "edgecolor": "none", "pad": 0.2, "alpha": 0.88},
+        )
+    fig.subplots_adjust(left=0.36, right=0.97, bottom=0.11, top=0.81)
+    _save_publication_figure(
+        fig,
+        path,
+        "Cross-model pooled versus within-asset discrimination",
+    )
+    plt.close(fig)
+
+
+def _make_appendix_identity_order_figure(path: Path, edition: str) -> None:
+    full_budget = edition in {"v3", "v4"}
+    data = load_identity_order_results(
+        IDENTITY_DECOMPOSITION_TABLE,
+        IDENTITY_SWAP_TABLE,
+        TEMPORAL_ORDER_TABLE,
+    )
+    labels = [result.label for result in data.interventions]
+    changes = [result.auc_change for result in data.interventions]
+    colours = [RED if result.category == "identity" else TEAL for result in data.interventions]
+
+    fig_size = (3.38, 3.55) if full_budget else (3.35, 3.40)
+    fig, ax = plt.subplots(figsize=fig_size, dpi=320)
+    y = list(range(len(data.interventions)))
+    ax.barh(y, changes, height=0.56, color=colours)
+    ax.axvline(0.0, color=INK, linewidth=0.9, zorder=0)
+    ax.set_xlim(-0.12, 0.018)
+    ax.set_ylim(4.65, -0.55)
+    ax.set_xticks([-0.10, -0.05, 0.0])
+    ax.set_xlabel("Change in pooled ROC-AUC", fontsize=8.0 if full_budget else 7.6)
+    ax.set_yticks(y, labels, fontsize=7.4 if full_budget else 7.0)
+    ax.tick_params(axis="x", labelsize=7.2 if full_budget else 6.9)
+    ax.grid(axis="x", alpha=0.2, linewidth=0.5)
+    ax.spines[["top", "right", "left"]].set_visible(False)
+    fig.suptitle(
+        "Identity interventions changed ranking more than\norder perturbations",
+        fontsize=8.5 if full_budget else 8.1,
+        weight="bold",
+        color=INK,
+        y=0.985,
+        linespacing=1.15,
+    )
+    fig.text(
+        0.5,
+        0.865,
+        f"Original Transformer ROC-AUC = {data.baseline_auc:.6f}",
+        ha="center",
+        fontsize=6.8 if full_budget else 6.5,
+        color=INK,
+    )
+    fig.legend(
+        handles=(
+            Patch(facecolor=RED, label="Identity intervention"),
+            Patch(facecolor=TEAL, label="Order perturbation"),
+        ),
+        frameon=False,
+        fontsize=6.7 if full_budget else 6.4,
+        loc="upper center",
+        bbox_to_anchor=(0.5, 0.825),
+        ncol=2,
+        columnspacing=1.2,
+        handlelength=1.4,
+    )
+    for row, change in enumerate(changes):
+        category = data.interventions[row].category
+        if category == "identity":
+            x, horizontal_alignment, text_colour = change + 0.004, "left", "white"
+        else:
+            x, horizontal_alignment, text_colour = 0.015, "right", INK
+        ax.text(
+            x,
+            row,
+            f"{change:+.4f}",
+            ha=horizontal_alignment,
+            va="center",
+            fontsize=6.7 if full_budget else 6.4,
+            color=text_colour,
+        )
+    fig.subplots_adjust(left=0.42, right=0.96, bottom=0.13, top=0.72)
+    _save_publication_figure(
+        fig,
+        path,
+        "Identity interventions changed ranking more than order perturbations",
+    )
+    plt.close(fig)
+
+
+def _make_appendix_family_prevalence_figure(path: Path, edition: str) -> None:
+    full_budget = edition in {"v3", "v4"}
+    data = load_family_prevalence(FAMILY_PREVALENCE_TABLE)
+    x = np.arange(len(data), dtype=float)
+    width = 0.23
+    split_styles = (
+        ("train", "Train", -width, 1.0, "///", "white"),
+        ("validation", "Validation", 0.0, 0.58, "", None),
+        ("test", "Test", width, 1.0, "", None),
+    )
+
+    fig_size = (3.38, 3.55) if full_budget else (3.35, 3.40)
+    fig, ax = plt.subplots(figsize=fig_size, dpi=320)
+    for split, _label, offset, alpha, hatch, fixed_face in split_styles:
+        for index, row in enumerate(data):
+            colour = FAMILY_COLOURS[row.family]
+            facecolour = fixed_face or colour
+            ax.bar(
+                x[index] + offset,
+                getattr(row, split),
+                width=width,
+                facecolor=facecolour,
+                edgecolor=colour,
+                linewidth=0.8,
+                alpha=alpha,
+                hatch=hatch,
+                zorder=2,
+            )
+
+    legend_colour = MID
+    fig.legend(
+        handles=(
+            Patch(
+                facecolor="white",
+                edgecolor=legend_colour,
+                hatch="///",
+                label="Train",
+            ),
+            Patch(
+                facecolor=legend_colour,
+                edgecolor=legend_colour,
+                alpha=0.58,
+                label="Validation",
+            ),
+            Patch(facecolor=legend_colour, edgecolor=legend_colour, label="Test"),
+        ),
+        frameon=False,
+        fontsize=6.8 if full_budget else 6.5,
+        loc="upper center",
+        bbox_to_anchor=(0.5, 0.845),
+        ncol=3,
+        columnspacing=1.0,
+        handlelength=1.3,
+    )
+    fig.suptitle(
+        "Adverse-event target prevalence\nby family and split",
+        fontsize=8.4 if full_budget else 8.0,
+        weight="bold",
+        color=INK,
+        y=0.985,
+        linespacing=1.12,
+    )
+    ax.set_xticks(
+        x,
+        [FAMILY_LABELS[row.family] for row in data],
+        rotation=22,
+        ha="right",
+        fontsize=6.4 if full_budget else 6.1,
+    )
+    ax.set_ylabel("Positive-label prevalence", fontsize=7.8 if full_budget else 7.5)
+    ax.yaxis.set_major_formatter(PercentFormatter(1.0, decimals=0))
+    ax.tick_params(axis="y", labelsize=7.0 if full_budget else 6.7)
+    ax.set_ylim(0.0, 0.56)
+    ax.grid(axis="y", alpha=0.2, linewidth=0.5)
+    ax.spines[["top", "right"]].set_visible(False)
+
+    validation_lookup = {row.family: row.validation for row in data}
+    bonds_index = FAMILY_ORDER.index("Bonds")
+    bonds_value = validation_lookup["Bonds"]
+    ax.annotate(
+        f"{bonds_value:.2%}",
+        xy=(x[bonds_index], bonds_value),
+        xytext=(x[bonds_index] - 0.08, 0.082),
+        ha="center",
+        va="bottom",
+        fontsize=6.2,
+        color=INK,
+        arrowprops={"arrowstyle": "-", "color": MID, "linewidth": 0.6},
+    )
+    crypto_index = FAMILY_ORDER.index("Crypto")
+    crypto_value = validation_lookup["Crypto"]
+    ax.text(
+        x[crypto_index],
+        crypto_value + 0.014,
+        f"{crypto_value:.2%}",
+        ha="center",
+        va="bottom",
+        fontsize=6.2,
+        color=INK,
+    )
+    fig.subplots_adjust(left=0.17, right=0.98, bottom=0.23, top=0.73)
+    _save_publication_figure(
+        fig,
+        path,
+        "Adverse-event target prevalence by family and split",
+    )
+    plt.close(fig)
+
+
+def _make_appendix_asset_prevalence_figure(path: Path, edition: str) -> None:
+    full_budget = edition in {"v3", "v4"}
+    data = load_asset_prevalence(ASSET_PREVALENCE_TABLE, DAILY_FAMILY_MAP_TABLE)
+    if data.excluded:
+        rendered = "; ".join(f"{item.ticker}: {item.reason}" for item in data.excluded)
+        raise ValueError(f"Figure A4 has excluded daily-panel assets: {rendered}")
+
+    fig_size = (3.38, 3.55) if full_budget else (3.35, 3.45)
+    fig, ax = plt.subplots(figsize=fig_size, dpi=320)
+    for family in FAMILY_ORDER:
+        points = [point for point in data.points if point.family == family]
+        ax.scatter(
+            [point.train for point in points],
+            [point.test for point in points],
+            s=25,
+            alpha=0.78,
+            color=FAMILY_COLOURS[family],
+            edgecolor="white",
+            linewidth=0.35,
+            label=FAMILY_LABELS[family].replace("\n", " "),
+            zorder=3,
+        )
+
+    equality_x = [point[0] for point in PREVALENCE_EQUALITY_LINE]
+    equality_y = [point[1] for point in PREVALENCE_EQUALITY_LINE]
+    ax.plot(equality_x, equality_y, color=INK, linewidth=0.8, linestyle="--", zorder=1)
+    ax.text(0.535, 0.555, "y = x", fontsize=6.2, color=INK, rotation=45)
+    ax.set_xlim(0.0, 0.68)
+    ax.set_ylim(0.0, 0.68)
+    ax.set_aspect("equal", adjustable="box")
+    ax.set_xticks([0.0, 0.2, 0.4, 0.6])
+    ax.set_yticks([0.0, 0.2, 0.4, 0.6])
+    ax.xaxis.set_major_formatter(PercentFormatter(1.0, decimals=0))
+    ax.yaxis.set_major_formatter(PercentFormatter(1.0, decimals=0))
+    ax.set_xlabel("Training target prevalence", fontsize=7.8 if full_budget else 7.5)
+    ax.set_ylabel("Test target prevalence", fontsize=7.8 if full_budget else 7.5)
+    ax.tick_params(labelsize=7.0 if full_budget else 6.7)
+    ax.grid(alpha=0.2, linewidth=0.5)
+    ax.spines[["top", "right"]].set_visible(False)
+    fig.suptitle(
+        "Training versus test target prevalence by asset",
+        fontsize=8.4 if full_budget else 8.0,
+        weight="bold",
+        color=INK,
+        y=0.985,
+    )
+    legend_handles = [
+        Line2D(
+            [0],
+            [0],
+            marker="o",
+            linestyle="none",
+            markerfacecolor=FAMILY_COLOURS[family],
+            markeredgecolor="white",
+            markersize=5.0,
+            label=FAMILY_LABELS[family].replace("\n", " "),
+        )
+        for family in FAMILY_ORDER
+    ]
+    fig.legend(
+        handles=legend_handles,
+        frameon=False,
+        fontsize=5.8 if full_budget else 5.6,
+        loc="upper center",
+        bbox_to_anchor=(0.5, 0.905),
+        ncol=3,
+        columnspacing=0.8,
+        handletextpad=0.3,
+    )
+    fig.subplots_adjust(left=0.18, right=0.97, bottom=0.14, top=0.76)
+    _save_publication_figure(
+        fig,
+        path,
+        "Training versus test target prevalence by asset",
+    )
+    plt.close(fig)
+
+
 def _save_publication_figure(fig, path: Path, title: str) -> None:
     path.parent.mkdir(parents=True, exist_ok=True)
     fig.savefig(
@@ -675,10 +1057,18 @@ def generate_figures(artifacts: Path, edition: str) -> dict[str, Path]:
         "methodology": artifacts / "figure_1_methodology.png",
         "core_results": artifacts / "figure_2_core_results.png",
         "simulation": artifacts / "figure_3_simulation.png",
+        "appendix_cross_model": artifacts / "figure_A1_cross_model.png",
+        "appendix_identity_order": artifacts / "figure_A2_identity_order.png",
+        "appendix_family_prevalence": artifacts / "figure_A3_family_prevalence.png",
+        "appendix_asset_prevalence": artifacts / "figure_A4_asset_prevalence.png",
     }
     _make_methodology_figure(paths["methodology"], edition)
     _make_core_results_figure(paths["core_results"], edition)
     _make_simulation_figure(paths["simulation"], edition)
+    _make_appendix_cross_model_figure(paths["appendix_cross_model"], edition)
+    _make_appendix_identity_order_figure(paths["appendix_identity_order"], edition)
+    _make_appendix_family_prevalence_figure(paths["appendix_family_prevalence"], edition)
+    _make_appendix_asset_prevalence_figure(paths["appendix_asset_prevalence"], edition)
     return paths
 
 
@@ -945,7 +1335,7 @@ def build(source: Path, output: Path, artifacts: Path, edition: str) -> None:
     output.parent.mkdir(parents=True, exist_ok=True)
     doc.save(output)
     print(f"Built {output}")
-    print(f"Generated {len(figures)} embedded figures under {artifacts}")
+    print(f"Generated {len(figures)} publication figures under {artifacts}")
 
 
 def main() -> None:

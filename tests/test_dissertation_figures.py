@@ -1,11 +1,20 @@
+import csv
+from collections import Counter
 from pathlib import Path
 
 import pytest
 import yaml
 
 from market_dynamics.reporting.dissertation_figures import (
+    CHANCE_AUC,
+    FAMILY_ORDER,
     METHODOLOGY_FIGURE_DATA,
+    PREVALENCE_EQUALITY_LINE,
+    load_appendix_cross_model_results,
+    load_asset_prevalence,
     load_core_results,
+    load_family_prevalence,
+    load_identity_order_results,
     load_simulation_figure_data,
 )
 
@@ -77,3 +86,99 @@ def test_simulation_figure_uses_registered_core_slices() -> None:
         [-0.002614808, 0.213771947, 0.425534926, 0.571245572],
         abs=1e-9,
     )
+
+
+def test_appendix_cross_model_figure_uses_exact_frozen_evidence() -> None:
+    results = load_appendix_cross_model_results(
+        TABLES / "ifddrp_identity_dynamic_information_decomposition.csv",
+        TABLES / "prp1_fixed_cross_model_results.csv",
+    )
+
+    assert CHANCE_AUC == 0.5
+    assert [row.key for row in results] == [
+        "static_asset_prior",
+        "mlp",
+        "transformer",
+        "tcn",
+        "lstm",
+        "flattened_logistic",
+    ]
+    assert [row.pooled_auc for row in results] == pytest.approx(
+        [0.823905856, 0.796477661, 0.789813558, 0.775881237, 0.692869596, 0.576219972],
+        abs=1e-9,
+    )
+    assert [row.within_asset_auc for row in results] == pytest.approx(
+        [0.5, 0.556966922, 0.491638470, 0.547453353, 0.518343737, 0.512171082],
+        abs=1e-9,
+    )
+
+
+def test_appendix_identity_order_deltas_use_full_precision_sources() -> None:
+    data = load_identity_order_results(
+        TABLES / "ifddrp_identity_dynamic_information_decomposition.csv",
+        TABLES / "phase6_identity_swap_results.csv",
+        TABLES / "phase6_temporal_order_destruction.csv",
+    )
+
+    assert data.baseline_auc == pytest.approx(0.7898135576855014, abs=1e-12)
+    assert [row.key for row in data.interventions] == [
+        "no_asset_id",
+        "cyclic_asset_id_swap",
+        "reverse_order",
+        "permuted_order",
+        "circular_shift",
+    ]
+    assert [row.auc for row in data.interventions] == pytest.approx(
+        [0.715476655, 0.682927551, 0.791262639, 0.788585027, 0.790321220],
+        abs=1e-9,
+    )
+    assert [row.auc_change for row in data.interventions] == pytest.approx(
+        [-0.074336902, -0.106886007, 0.001449082, -0.001228531, 0.000507662],
+        abs=1e-9,
+    )
+    assert data.interventions[0].label == "No asset ID"
+
+
+def test_appendix_family_prevalence_uses_corrected_daily_phase6_universe() -> None:
+    data = load_family_prevalence(TABLES / "phase6_target_prevalence_by_family.csv")
+
+    assert tuple(row.family for row in data) == FAMILY_ORDER
+    assert len(data) == 6
+    assert sum(row.n_assets for row in data) == 80
+    assert all(0.0 <= value <= 1.0 for row in data for value in (row.train, row.validation, row.test))
+    lookup = {row.family: row for row in data}
+    assert lookup["Bonds"].validation == pytest.approx(0.017447199, abs=1e-9)
+    assert lookup["Crypto"].validation == pytest.approx(0.468036530, abs=1e-9)
+    assert lookup["Crypto"].n_assets == 13
+
+
+def test_appendix_asset_prevalence_is_complete_and_uses_equality_reference() -> None:
+    data = load_asset_prevalence(
+        TABLES / "phase6_target_prevalence_by_asset.csv",
+        TABLES / "phase6_data_path_remediation.csv",
+    )
+    repeated = load_asset_prevalence(
+        TABLES / "phase6_target_prevalence_by_asset.csv",
+        TABLES / "phase6_data_path_remediation.csv",
+    )
+    with (TABLES / "phase6_data_path_remediation.csv").open(
+        encoding="utf-8",
+        newline="",
+    ) as handle:
+        expected_tickers = {row["Ticker"] for row in csv.DictReader(handle)}
+
+    assert data == repeated
+    assert data.source_track == "corrected_daily_phase6"
+    assert not data.excluded
+    assert len(data.points) == 80
+    assert {row.ticker for row in data.points} == expected_tickers
+    assert Counter(row.family for row in data.points) == {
+        "Equities": 39,
+        "Bonds": 11,
+        "Commodities": 8,
+        "FX": 6,
+        "Crypto": 13,
+        "Real assets": 3,
+    }
+    assert all(0.0 <= row.train <= 1.0 and 0.0 <= row.test <= 1.0 for row in data.points)
+    assert PREVALENCE_EQUALITY_LINE == ((0.0, 0.0), (1.0, 1.0))
