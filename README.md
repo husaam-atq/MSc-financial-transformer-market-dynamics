@@ -25,7 +25,7 @@ of profitability.
 ![Graphical abstract showing a 60-session daily panel entering a Transformer, followed by pooled, static-prior, within-asset, identity, chronology and simulation diagnostics](assets/readme/graphical_abstract.svg)
 
 *The final daily study evaluates a pooled Transformer through static baselines,
-within-asset estimands, identity interventions, temporal-order attacks and a
+within-asset estimands, identity interventions, temporal-order perturbations and a
 registered controlled simulation.*
 
 **Choose your path:** [Examiner: key findings and methodology](#key-finding) |
@@ -58,6 +58,8 @@ registered controlled simulation.*
 - [Project status](#project-status)
 - [Citation](#citation)
 - [Licence](#licence)
+
+---
 
 ## Research question
 
@@ -95,7 +97,7 @@ The strongest learned within-asset result came from the MLP: pooled ROC-AUC
 flattened logistic regression, MLP, LSTM, TCN and Transformer models, none passed
 all five gate conditions.
 
-Further attacks changed the interpretation:
+### Identity and chronology diagnostics
 
 - removing explicit asset identity reduced Transformer pooled ROC-AUC to 0.715477;
 - cyclic asset-ID swapping reduced it to 0.682928 and changed probabilities by a
@@ -130,6 +132,8 @@ flowchart TD
     K --> L["Frozen conclusion"]
 ```
 
+---
+
 ## Methodology
 
 The final experiment uses information available by an asset's close at forecast
@@ -155,7 +159,7 @@ terminal loss, path drawdown or volatility escalation condition is met.
 ```mermaid
 flowchart LR
     A["60 sessions x 34 numerical features"] --> C["46-channel conditioned input"]
-    B["12-D asset identity"] --> C
+    B["12-D asset embedding"] --> C
     C --> D["Projection + position"]
     D --> E["2-layer Transformer"]
     E --> F["Attention pooling"]
@@ -251,6 +255,8 @@ diagnostic behaviour under controlled mechanisms. It is not external market
 replication, a causal result or an estimate of a real financial effect size. See
 the [`simulation protocol`](reports/tables/prp1_study_a_independent_simulation_protocol.md)
 and [`gate inference`](reports/tables/prp1_study_a_independent_simulation_gate_inference.csv).
+
+---
 
 ## Reproducibility
 
@@ -357,6 +363,8 @@ reconstruction.
 > manifests, configurations and compact frozen evidence, subject to provider
 > availability and terms.
 
+---
+
 ## Broader experimental programme
 
 <details>
@@ -408,6 +416,8 @@ separate 306,174-row daily panel.
 - Removing explicit identity does not remove every indirect asset fingerprint.
 - Simulation validates the diagnostic mechanism, not its prevalence in markets.
 - No result establishes causality, profitability or production readiness.
+
+---
 
 ## Dissertation artefacts
 
