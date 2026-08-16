@@ -68,7 +68,7 @@ class InterventionFigureData:
 
 @dataclass(frozen=True)
 class FamilyPrevalence:
-    """Corrected target prevalence for one daily-panel asset family."""
+    """Model-window endpoint prevalence for one daily-panel asset family."""
 
     family: str
     n_assets: int
@@ -79,7 +79,7 @@ class FamilyPrevalence:
 
 @dataclass(frozen=True)
 class AssetPrevalence:
-    """Corrected train/test target prevalence for one daily-panel asset."""
+    """Model-window endpoint prevalence for one daily-panel asset."""
 
     ticker: str
     family: str
@@ -91,7 +91,7 @@ class AssetPrevalence:
 
 @dataclass(frozen=True)
 class ExcludedAsset:
-    """Asset omitted from Figure A4 because a required public summary is missing."""
+    """Configured asset excluded from the final model-window population."""
 
     ticker: str
     reason: str
@@ -99,11 +99,24 @@ class ExcludedAsset:
 
 @dataclass(frozen=True)
 class AssetPrevalenceFigureData:
-    """Daily-panel points and any explicit exclusions displayed in Figure A4."""
+    """Final evaluation points and explicit configured-universe exclusions."""
 
     points: tuple[AssetPrevalence, ...]
     excluded: tuple[ExcludedAsset, ...]
-    source_track: str = "corrected_daily_phase6"
+    source_track: str = "final_model_window_endpoints"
+
+
+@dataclass(frozen=True)
+class WindowEndpointPrevalence:
+    """Target-label support for one asset and final model split."""
+
+    split: str
+    asset_id: int
+    ticker: str
+    family: str
+    endpoints: int
+    positives: int
+    prevalence: float
 
 
 METHODOLOGY_FIGURE_DATA = MethodologyFigureData()
@@ -111,6 +124,33 @@ CHANCE_AUC = 0.5
 PREVALENCE_EQUALITY_LINE = ((0.0, 0.0), (1.0, 1.0))
 PREVALENCE_SPLITS = ("train", "validation", "test")
 FAMILY_ORDER = ("Equities", "Bonds", "Commodities", "FX", "Crypto", "Real assets")
+MODEL_WINDOW_LOOKBACK = 60
+MODEL_WINDOW_ASSET_COUNT = 79
+MODEL_WINDOW_ENDPOINT_SHA256 = (
+    "47527d25a7a7f1a293c14ee7f6aaa254be3163d14a2c6f2149b687357d9c4a60"
+)
+MODEL_WINDOW_ENDPOINT_COUNTS = (
+    ("train", 245_055),
+    ("validation", 20_494),
+    ("test", 21_514),
+)
+MODEL_WINDOW_FAMILY_COUNTS = (
+    ("Equities", 39),
+    ("Bonds", 11),
+    ("Commodities", 8),
+    ("FX", 6),
+    ("Crypto", 12),
+    ("Real assets", 3),
+)
+MODEL_WINDOW_EXCLUSIONS = (
+    ExcludedAsset(
+        ticker="UNI-USD",
+        reason=(
+            "24 valid target-labelled test rows after the ten-session future horizon; "
+            "fewer than the 60 sessions required to form a test window"
+        ),
+    ),
+)
 
 
 def load_core_results(
@@ -360,99 +400,151 @@ def load_identity_order_results(
     return InterventionFigureData(baseline_auc=baseline, interventions=interventions)
 
 
-def load_family_prevalence(path: Path) -> tuple[FamilyPrevalence, ...]:
-    """Load corrected daily-panel family prevalence for Figure A3."""
-    rows = [row for row in _read_rows(path) if row.get("group_type") == "family"]
-    actual_families = {row["group"] for row in rows}
-    actual_splits = {row["split"] for row in rows}
-    if actual_families != set(FAMILY_ORDER):
-        raise ValueError(f"Unexpected family prevalence groups: {sorted(actual_families)}")
-    if actual_splits != set(PREVALENCE_SPLITS):
-        raise ValueError(f"Unexpected family prevalence splits: {sorted(actual_splits)}")
+def load_window_endpoint_prevalence(path: Path) -> tuple[WindowEndpointPrevalence, ...]:
+    """Load and validate the exact endpoint-label population used for evaluation."""
+    raw_rows = _read_rows(path)
+    required_columns = {
+        "split",
+        "asset_id",
+        "asset_ticker",
+        "family",
+        "endpoints",
+        "positives",
+        "prevalence",
+        "lookback",
+        "endpoint_sha256",
+    }
+    if not raw_rows or set(raw_rows[0]) != required_columns:
+        actual_columns = set(raw_rows[0]) if raw_rows else set()
+        raise ValueError(f"Unexpected model-window prevalence schema: {sorted(actual_columns)}")
 
+    rows: list[WindowEndpointPrevalence] = []
+    for raw in raw_rows:
+        split = raw["split"]
+        family = raw["family"]
+        if split not in PREVALENCE_SPLITS:
+            raise ValueError(f"Unexpected model-window split: {split}")
+        if family not in FAMILY_ORDER:
+            raise ValueError(f"Unexpected model-window family: {family}")
+        if int(raw["lookback"]) != MODEL_WINDOW_LOOKBACK:
+            raise ValueError(f"Unexpected lookback for {raw['asset_ticker']}: {raw['lookback']}")
+        if raw["endpoint_sha256"] != MODEL_WINDOW_ENDPOINT_SHA256:
+            raise ValueError(f"Endpoint hash mismatch for {raw['asset_ticker']} ({split})")
+
+        endpoints = int(raw["endpoints"])
+        positives = int(raw["positives"])
+        prevalence = _as_probability(raw, "prevalence")
+        if endpoints <= 0 or not 0 <= positives <= endpoints:
+            raise ValueError(f"Invalid endpoint support for {raw['asset_ticker']} ({split})")
+        if not _close(prevalence, positives / endpoints):
+            raise ValueError(f"Prevalence disagrees with endpoint labels for {raw['asset_ticker']}")
+        rows.append(
+            WindowEndpointPrevalence(
+                split=split,
+                asset_id=int(raw["asset_id"]),
+                ticker=raw["asset_ticker"],
+                family=family,
+                endpoints=endpoints,
+                positives=positives,
+                prevalence=prevalence,
+            )
+        )
+
+    keys = {(row.split, row.asset_id, row.ticker) for row in rows}
+    if len(keys) != len(rows):
+        raise ValueError("Duplicate model-window prevalence rows")
+
+    identities_by_split = {
+        split: {
+            (row.asset_id, row.ticker, row.family)
+            for row in rows
+            if row.split == split
+        }
+        for split in PREVALENCE_SPLITS
+    }
+    expected_identities = identities_by_split["train"]
+    if any(identities != expected_identities for identities in identities_by_split.values()):
+        raise ValueError("Model-window asset population changes across splits")
+    if len(expected_identities) != MODEL_WINDOW_ASSET_COUNT:
+        raise ValueError(f"Expected {MODEL_WINDOW_ASSET_COUNT} model assets; found {len(expected_identities)}")
+    if (
+        len({asset_id for asset_id, _, _ in expected_identities}) != MODEL_WINDOW_ASSET_COUNT
+        or len({ticker for _, ticker, _ in expected_identities}) != MODEL_WINDOW_ASSET_COUNT
+    ):
+        raise ValueError("Model-window asset IDs and tickers must map one-to-one")
+    if any(ticker == "UNI-USD" for _, ticker, _ in expected_identities):
+        raise ValueError("UNI-USD must not appear in the final model-window population")
+
+    expected_endpoint_counts = dict(MODEL_WINDOW_ENDPOINT_COUNTS)
+    actual_endpoint_counts = {
+        split: sum(row.endpoints for row in rows if row.split == split)
+        for split in PREVALENCE_SPLITS
+    }
+    if actual_endpoint_counts != expected_endpoint_counts:
+        raise ValueError(f"Unexpected model-window endpoint totals: {actual_endpoint_counts}")
+
+    actual_family_counts = {
+        family: sum(identity[2] == family for identity in expected_identities)
+        for family in FAMILY_ORDER
+    }
+    if actual_family_counts != dict(MODEL_WINDOW_FAMILY_COUNTS):
+        raise ValueError(f"Unexpected model-window family composition: {actual_family_counts}")
+
+    split_rank = {split: index for index, split in enumerate(PREVALENCE_SPLITS)}
+    return tuple(sorted(rows, key=lambda row: (split_rank[row.split], row.asset_id)))
+
+
+def load_family_prevalence(path: Path) -> tuple[FamilyPrevalence, ...]:
+    """Aggregate Figure A3 from final model-window endpoint labels."""
+    rows = load_window_endpoint_prevalence(path)
     results: list[FamilyPrevalence] = []
     for family in FAMILY_ORDER:
-        split_rows = {
-            split: _require_row(rows, split=split, group_type="family", group=family)
-            for split in PREVALENCE_SPLITS
-        }
-        asset_counts = {int(row["n_assets"]) for row in split_rows.values()}
-        if len(asset_counts) != 1:
-            raise ValueError(f"Asset count changes across splits for {family}")
+        family_rows = [row for row in rows if row.family == family]
+        prevalence_by_split = {}
+        for split in PREVALENCE_SPLITS:
+            split_rows = [row for row in family_rows if row.split == split]
+            prevalence_by_split[split] = sum(row.positives for row in split_rows) / sum(
+                row.endpoints for row in split_rows
+            )
         results.append(
             FamilyPrevalence(
                 family=family,
-                n_assets=asset_counts.pop(),
-                train=_as_probability(split_rows["train"], "prevalence"),
-                validation=_as_probability(split_rows["validation"], "prevalence"),
-                test=_as_probability(split_rows["test"], "prevalence"),
+                n_assets=sum(row.split == "train" for row in family_rows),
+                train=prevalence_by_split["train"],
+                validation=prevalence_by_split["validation"],
+                test=prevalence_by_split["test"],
             )
         )
     return tuple(results)
 
 
-def load_asset_prevalence(
-    asset_prevalence_path: Path,
-    daily_family_map_path: Path,
-) -> AssetPrevalenceFigureData:
-    """Load corrected daily-panel train/test prevalence points for Figure A4."""
-    rows = [
-        row
-        for row in _read_rows(asset_prevalence_path)
-        if row.get("group_type") == "asset_ticker"
-    ]
-    unexpected_splits = {row["split"] for row in rows} - set(PREVALENCE_SPLITS)
-    if unexpected_splits:
-        raise ValueError(f"Unexpected asset prevalence splits: {sorted(unexpected_splits)}")
-
-    family_rows = _read_rows(daily_family_map_path)
-    family_map: dict[str, str] = {}
-    for row in family_rows:
-        ticker = row["Ticker"]
-        if ticker in family_map:
-            raise ValueError(f"Duplicate daily-panel family mapping for {ticker}")
-        family_map[ticker] = row["family"]
-
-    table_tickers = {row["group"] for row in rows}
-    all_tickers = sorted(table_tickers | set(family_map))
+def load_asset_prevalence(path: Path) -> AssetPrevalenceFigureData:
+    """Load Figure A4 points from the same final endpoint population as Figure A3."""
+    rows = load_window_endpoint_prevalence(path)
     points: list[AssetPrevalence] = []
-    excluded: list[ExcludedAsset] = []
-    for ticker in all_tickers:
-        family = family_map.get(ticker)
-        if family is None:
-            excluded.append(ExcludedAsset(ticker=ticker, reason="missing daily-panel family map"))
-            continue
-        if family not in FAMILY_ORDER:
-            excluded.append(ExcludedAsset(ticker=ticker, reason=f"unknown family: {family}"))
-            continue
-        split_rows = [row for row in rows if row["group"] == ticker]
-        available = {row["split"] for row in split_rows}
-        missing = {"train", "test"} - available
-        if missing:
-            reason = f"missing required split: {', '.join(sorted(missing))}"
-            excluded.append(ExcludedAsset(ticker=ticker, reason=reason))
-            continue
-        train = _require_row(split_rows, split="train", group_type="asset_ticker", group=ticker)
-        test = _require_row(split_rows, split="test", group_type="asset_ticker", group=ticker)
-        train_n_obs = int(train["n_obs"])
-        test_n_obs = int(test["n_obs"])
-        if train_n_obs <= 0 or test_n_obs <= 0:
-            excluded.append(ExcludedAsset(ticker=ticker, reason="non-positive split support"))
-            continue
+    for train in (row for row in rows if row.split == "train"):
+        test = next(
+            row
+            for row in rows
+            if row.split == "test" and row.asset_id == train.asset_id
+        )
         points.append(
             AssetPrevalence(
-                ticker=ticker,
-                family=family,
-                train=_as_probability(train, "prevalence"),
-                test=_as_probability(test, "prevalence"),
-                train_n_obs=train_n_obs,
-                test_n_obs=test_n_obs,
+                ticker=train.ticker,
+                family=train.family,
+                train=train.prevalence,
+                test=test.prevalence,
+                train_n_obs=train.endpoints,
+                test_n_obs=test.endpoints,
             )
         )
 
     family_rank = {family: index for index, family in enumerate(FAMILY_ORDER)}
     points.sort(key=lambda point: (family_rank[point.family], point.ticker))
-    return AssetPrevalenceFigureData(points=tuple(points), excluded=tuple(excluded))
+    return AssetPrevalenceFigureData(
+        points=tuple(points),
+        excluded=MODEL_WINDOW_EXCLUSIONS,
+    )
 
 
 def _read_rows(path: Path) -> list[dict[str, str]]:

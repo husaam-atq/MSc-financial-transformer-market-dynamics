@@ -38,6 +38,7 @@ from market_dynamics.reporting.dissertation_figures import (  # noqa: E402
     CHANCE_AUC,
     FAMILY_ORDER,
     METHODOLOGY_FIGURE_DATA,
+    MODEL_WINDOW_EXCLUSIONS,
     PREVALENCE_EQUALITY_LINE,
     load_appendix_cross_model_results,
     load_asset_prevalence,
@@ -55,9 +56,14 @@ IDENTITY_DECOMPOSITION_TABLE = ROOT / "reports" / "tables" / "ifddrp_identity_dy
 CROSS_MODEL_RESULTS_TABLE = ROOT / "reports" / "tables" / "prp1_fixed_cross_model_results.csv"
 IDENTITY_SWAP_TABLE = ROOT / "reports" / "tables" / "phase6_identity_swap_results.csv"
 TEMPORAL_ORDER_TABLE = ROOT / "reports" / "tables" / "phase6_temporal_order_destruction.csv"
-FAMILY_PREVALENCE_TABLE = ROOT / "reports" / "tables" / "phase6_target_prevalence_by_family.csv"
-ASSET_PREVALENCE_TABLE = ROOT / "reports" / "tables" / "phase6_target_prevalence_by_asset.csv"
-DAILY_FAMILY_MAP_TABLE = ROOT / "reports" / "tables" / "phase6_data_path_remediation.csv"
+WINDOW_ENDPOINT_PREVALENCE_TABLE = (
+    ROOT
+    / "src"
+    / "market_dynamics"
+    / "reporting"
+    / "data"
+    / "final_model_window_prevalence.csv"
+)
 
 matplotlib.rcParams["svg.hashsalt"] = "financial-dynamics-dissertation"
 matplotlib.rcParams["svg.fonttype"] = "none"
@@ -850,7 +856,7 @@ def _make_appendix_identity_order_figure(path: Path, edition: str) -> None:
 
 def _make_appendix_family_prevalence_figure(path: Path, edition: str) -> None:
     full_budget = edition in {"v3", "v4"}
-    data = load_family_prevalence(FAMILY_PREVALENCE_TABLE)
+    data = load_family_prevalence(WINDOW_ENDPOINT_PREVALENCE_TABLE)
     x = np.arange(len(data), dtype=float)
     width = 0.23
     split_styles = (
@@ -959,10 +965,10 @@ def _make_appendix_family_prevalence_figure(path: Path, edition: str) -> None:
 
 def _make_appendix_asset_prevalence_figure(path: Path, edition: str) -> None:
     full_budget = edition in {"v3", "v4"}
-    data = load_asset_prevalence(ASSET_PREVALENCE_TABLE, DAILY_FAMILY_MAP_TABLE)
-    if data.excluded:
+    data = load_asset_prevalence(WINDOW_ENDPOINT_PREVALENCE_TABLE)
+    if data.excluded != MODEL_WINDOW_EXCLUSIONS:
         rendered = "; ".join(f"{item.ticker}: {item.reason}" for item in data.excluded)
-        raise ValueError(f"Figure A4 has excluded daily-panel assets: {rendered}")
+        raise ValueError(f"Figure A4 has unexpected configured-universe exclusions: {rendered}")
 
     fig_size = (3.38, 3.55) if full_budget else (3.35, 3.45)
     fig, ax = plt.subplots(figsize=fig_size, dpi=320)

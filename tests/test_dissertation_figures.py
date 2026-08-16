@@ -9,6 +9,11 @@ from market_dynamics.reporting.dissertation_figures import (
     CHANCE_AUC,
     FAMILY_ORDER,
     METHODOLOGY_FIGURE_DATA,
+    MODEL_WINDOW_ASSET_COUNT,
+    MODEL_WINDOW_ENDPOINT_COUNTS,
+    MODEL_WINDOW_ENDPOINT_SHA256,
+    MODEL_WINDOW_EXCLUSIONS,
+    MODEL_WINDOW_FAMILY_COUNTS,
     PREVALENCE_EQUALITY_LINE,
     load_appendix_cross_model_results,
     load_asset_prevalence,
@@ -16,10 +21,19 @@ from market_dynamics.reporting.dissertation_figures import (
     load_family_prevalence,
     load_identity_order_results,
     load_simulation_figure_data,
+    load_window_endpoint_prevalence,
 )
 
 ROOT = Path(__file__).resolve().parents[1]
 TABLES = ROOT / "reports" / "tables"
+WINDOW_ENDPOINTS = (
+    ROOT
+    / "src"
+    / "market_dynamics"
+    / "reporting"
+    / "data"
+    / "final_model_window_prevalence.csv"
+)
 
 
 def test_methodology_figure_matches_frozen_phase6_configuration() -> None:
@@ -139,46 +153,102 @@ def test_appendix_identity_order_deltas_use_full_precision_sources() -> None:
     assert data.interventions[0].label == "No asset ID"
 
 
-def test_appendix_family_prevalence_uses_corrected_daily_phase6_universe() -> None:
-    data = load_family_prevalence(TABLES / "phase6_target_prevalence_by_family.csv")
+def test_model_window_endpoint_resource_matches_frozen_evaluation_population() -> None:
+    rows = load_window_endpoint_prevalence(WINDOW_ENDPOINTS)
 
-    assert tuple(row.family for row in data) == FAMILY_ORDER
-    assert len(data) == 6
-    assert sum(row.n_assets for row in data) == 80
-    assert all(0.0 <= value <= 1.0 for row in data for value in (row.train, row.validation, row.test))
-    lookup = {row.family: row for row in data}
-    assert lookup["Bonds"].validation == pytest.approx(0.017447199, abs=1e-9)
-    assert lookup["Crypto"].validation == pytest.approx(0.468036530, abs=1e-9)
-    assert lookup["Crypto"].n_assets == 13
-
-
-def test_appendix_asset_prevalence_is_complete_and_uses_equality_reference() -> None:
-    data = load_asset_prevalence(
-        TABLES / "phase6_target_prevalence_by_asset.csv",
-        TABLES / "phase6_data_path_remediation.csv",
+    assert len(rows) == 3 * MODEL_WINDOW_ASSET_COUNT == 237
+    assets_by_split = {
+        split: {row.ticker for row in rows if row.split == split}
+        for split in ("train", "validation", "test")
+    }
+    assert assets_by_split["train"] == assets_by_split["validation"] == assets_by_split["test"]
+    assert "UNI-USD" not in assets_by_split["test"]
+    assert Counter(row.family for row in rows if row.split == "test") == dict(
+        MODEL_WINDOW_FAMILY_COUNTS
     )
-    repeated = load_asset_prevalence(
-        TABLES / "phase6_target_prevalence_by_asset.csv",
-        TABLES / "phase6_data_path_remediation.csv",
-    )
-    with (TABLES / "phase6_data_path_remediation.csv").open(
+    assert {
+        split: sum(row.endpoints for row in rows if row.split == split)
+        for split in ("train", "validation", "test")
+    } == dict(MODEL_WINDOW_ENDPOINT_COUNTS)
+    assert all(0.0 <= row.prevalence <= 1.0 for row in rows)
+
+    with (TABLES / "ifddrp_within_asset_pair_audit.csv").open(
         encoding="utf-8",
         newline="",
     ) as handle:
-        expected_tickers = {row["Ticker"] for row in csv.DictReader(handle)}
+        audit_rows = [
+            row for row in csv.DictReader(handle) if row["split"] in {"train", "validation"}
+        ]
+    expected = {
+        (row["split"], int(row["asset_id"])): (
+            row["asset_ticker"],
+            row["family"],
+            int(row["endpoints"]),
+            int(row["positives"]),
+        )
+        for row in audit_rows
+    }
+    actual = {
+        (row.split, row.asset_id): (row.ticker, row.family, row.endpoints, row.positives)
+        for row in rows
+        if row.split in {"train", "validation"}
+    }
+    assert actual == expected
+
+    with (TABLES / "prp1_fixed_cross_model_execution_manifest.csv").open(
+        encoding="utf-8",
+        newline="",
+    ) as handle:
+        execution_rows = list(csv.DictReader(handle))
+    manifest_row = next(
+        row
+        for row in execution_rows
+        if row["model"] == "mlp"
+        and row["identity_variant"] == "asset_conditioned"
+        and row["seed"] == "7"
+    )
+    assert manifest_row["endpoint_sha256"] == MODEL_WINDOW_ENDPOINT_SHA256
+    assert int(manifest_row["train_windows"]) == dict(MODEL_WINDOW_ENDPOINT_COUNTS)["train"]
+    assert int(manifest_row["validation_windows"]) == dict(MODEL_WINDOW_ENDPOINT_COUNTS)[
+        "validation"
+    ]
+    assert int(manifest_row["test_windows"]) == dict(MODEL_WINDOW_ENDPOINT_COUNTS)["test"]
+
+
+def test_appendix_family_prevalence_uses_model_window_endpoints() -> None:
+    data = load_family_prevalence(WINDOW_ENDPOINTS)
+
+    assert tuple(row.family for row in data) == FAMILY_ORDER
+    assert len(data) == 6
+    assert sum(row.n_assets for row in data) == MODEL_WINDOW_ASSET_COUNT
+    assert all(0.0 <= value <= 1.0 for row in data for value in (row.train, row.validation, row.test))
+    lookup = {row.family: row for row in data}
+    assert lookup["Bonds"].validation == pytest.approx(55 / 2_618, abs=1e-12)
+    assert lookup["Crypto"].validation == pytest.approx(2_254 / 4_548, abs=1e-12)
+    assert lookup["Crypto"].n_assets == 12
+
+
+def test_appendix_asset_prevalence_uses_same_endpoint_population_as_a3() -> None:
+    endpoint_rows = load_window_endpoint_prevalence(WINDOW_ENDPOINTS)
+    data = load_asset_prevalence(WINDOW_ENDPOINTS)
+    repeated = load_asset_prevalence(WINDOW_ENDPOINTS)
+    expected_tickers = {row.ticker for row in endpoint_rows if row.split == "test"}
+    endpoint_lookup = {(row.split, row.ticker): row for row in endpoint_rows}
 
     assert data == repeated
-    assert data.source_track == "corrected_daily_phase6"
-    assert not data.excluded
-    assert len(data.points) == 80
+    assert data.source_track == "final_model_window_endpoints"
+    assert data.excluded == MODEL_WINDOW_EXCLUSIONS
+    assert [item.ticker for item in data.excluded] == ["UNI-USD"]
+    assert "60 sessions" in data.excluded[0].reason
+    assert len(data.points) == MODEL_WINDOW_ASSET_COUNT
     assert {row.ticker for row in data.points} == expected_tickers
-    assert Counter(row.family for row in data.points) == {
-        "Equities": 39,
-        "Bonds": 11,
-        "Commodities": 8,
-        "FX": 6,
-        "Crypto": 13,
-        "Real assets": 3,
-    }
+    assert Counter(row.family for row in data.points) == dict(MODEL_WINDOW_FAMILY_COUNTS)
     assert all(0.0 <= row.train <= 1.0 and 0.0 <= row.test <= 1.0 for row in data.points)
+    assert all(
+        row.train == endpoint_lookup[("train", row.ticker)].prevalence
+        and row.test == endpoint_lookup[("test", row.ticker)].prevalence
+        and row.train_n_obs == endpoint_lookup[("train", row.ticker)].endpoints
+        and row.test_n_obs == endpoint_lookup[("test", row.ticker)].endpoints
+        for row in data.points
+    )
     assert PREVALENCE_EQUALITY_LINE == ((0.0, 0.0), (1.0, 1.0))
