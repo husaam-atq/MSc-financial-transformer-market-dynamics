@@ -9,14 +9,18 @@
 
 A multi-asset forecasting study testing whether strong pooled Transformer
 performance reflects genuine temporal skill or persistent cross-sectional
-structure. The Transformer reached pooled ROC-AUC **0.790**, but a training-only
-asset prior reached **0.824** and the Transformer's within-asset ROC-AUC was
-**0.492**.
+structure.
 
 Controlled simulation confirms that the project's diagnostic framework separates
 static prevalence heterogeneity from deliberately planted ordered temporal signal.
 This is a forecasting and model-evaluation study, not a trading system or a claim
 of profitability.
+
+> [!IMPORTANT]
+> **Central finding:** the Transformer achieved pooled ROC-AUC **0.790**, but a
+> training-only static asset prior achieved **0.824** and the Transformer's
+> pair-weighted within-asset ROC-AUC was **0.492**. Strong pooled discrimination
+> therefore did not establish robust temporal forecasting skill.
 
 ![Graphical abstract showing a 60-session daily panel entering a Transformer, followed by pooled, static-prior, within-asset, identity, chronology and simulation diagnostics](assets/readme/graphical_abstract.svg)
 
@@ -24,9 +28,36 @@ of profitability.
 within-asset estimands, identity interventions, temporal-order attacks and a
 registered controlled simulation.*
 
-[Key finding](#key-finding) | [Methodology](#methodology) |
-[Diagnostic framework](#diagnostic-framework) | [Reproducibility](#reproducibility) |
-[Dissertation artefacts](#dissertation-artefacts)
+**Choose your path:** [Examiner: key findings and methodology](#key-finding) |
+[Researcher: diagnostics and simulation](#diagnostic-framework) |
+[Developer: reproducibility and setup](#reproducibility) |
+[Dissertation: current artefacts](#dissertation-artefacts)
+
+**Key links:** [Headline results](#key-finding) | [Methodology](#methodology) |
+[Diagnostic framework](#diagnostic-framework) | [Controlled simulation](#controlled-simulation) |
+[Reproducibility](#reproducibility) | [Repository structure](#repository-structure) |
+[Broader experimental programme](#broader-experimental-programme) |
+[Dissertation artefacts](#dissertation-artefacts) |
+[Frozen release](https://github.com/husaam-atq/MSc-financial-transformer-market-dynamics/tree/dissertation-final)
+
+## Contents
+
+- [Research question](#research-question)
+- [Key finding](#key-finding)
+- [Research decision path](#research-decision-path)
+- [Methodology](#methodology)
+- [Leakage-aware evaluation](#leakage-aware-evaluation)
+- [Diagnostic framework](#diagnostic-framework)
+- [Controlled simulation](#controlled-simulation)
+- [Reproducibility](#reproducibility)
+- [Repository structure](#repository-structure)
+- [Data access](#data-access)
+- [Broader experimental programme](#broader-experimental-programme)
+- [Scope and limitations](#scope-and-limitations)
+- [Dissertation artefacts](#dissertation-artefacts)
+- [Project status](#project-status)
+- [Citation](#citation)
+- [Licence](#licence)
 
 ## Research question
 
@@ -78,6 +109,27 @@ The contribution is therefore methodological: a simulation-validated framework
 for testing whether pooled financial models learn ordered temporal information or
 cross-sectional shortcuts.
 
+## Research decision path
+
+Each stage tested a specific alternative explanation; repeated test-period
+inspection across the wider programme made the historical evidence adaptive rather
+than untouched confirmation.
+
+```mermaid
+flowchart TD
+    A["Pooled Transformer"] --> B["Pooled AUC 0.790"]
+    B --> C["Static-prior benchmark"]
+    C --> D["Asset prior AUC 0.824"]
+    D --> E["Within-asset evaluation"]
+    E --> F["Transformer within AUC 0.492"]
+    F --> G["Identity diagnostics"]
+    G --> H["Chronology perturbations"]
+    H --> I["Five-model comparison"]
+    I --> J["1,040-run simulation"]
+    J --> K["Recovery tests"]
+    K --> L["Frozen conclusion"]
+```
+
 ## Methodology
 
 The final experiment uses information available by an asset's close at forecast
@@ -100,6 +152,16 @@ terminal loss, path drawdown or volatility escalation condition is met.
 | Boundary controls | 18-date purge, one-date embargo, zero audited interval crossings |
 | Selection | Train-only preprocessing; validation-only stopping, calibration and thresholding |
 
+```mermaid
+flowchart LR
+    A["60 sessions x 34 numerical features"] --> C["46-channel conditioned input"]
+    B["12-D asset identity"] --> C
+    C --> D["Projection + position"]
+    D --> E["2-layer Transformer"]
+    E --> F["Attention pooling"]
+    F --> G["Risk score"]
+```
+
 Adjusted close is preferred for returns and targets. Raw OHLC fields are retained
 for gap, range and intraday-style features. Windows follow each asset's observed
 calendar, so traditional-market weekends are not forward-filled into crypto. The
@@ -115,6 +177,32 @@ Detailed definitions are retained in the
 [`authoritative model specification`](reports/tables/ifddrp_transformer_authoritative_specification.md),
 [`Phase 6 configuration`](configs/phase6_config.yaml) and
 [`final evidence freeze`](reports/tables/ifddrp_final_evidence_freeze.md).
+
+### Leakage-aware evaluation
+
+| Split | Model windows | Permitted use |
+|---|---:|---|
+| Train | 245,055 | Fit preprocessing, priors and model parameters |
+| Validation | 20,494 | Select stopping, calibration and thresholds |
+| Test | 21,514 | Fixed evaluation and registered diagnostics |
+
+The corrected fold uses an 18-date purge and one-date embargo. A direct interval
+audit found zero target intervals crossing the final split boundaries.
+
+```mermaid
+flowchart LR
+    A["Train"] --> B["18-date purge"]
+    A --> F["Fit preprocessing + priors"]
+    B --> C["Validation"]
+    C --> D["Embargo + purge"]
+    C --> G["Stopping + calibration"]
+    D --> E["Test"]
+    E --> H["Fixed evaluation"]
+    H --> I["Grouped metrics + diagnostics"]
+```
+
+The final test period was historically held out, but repeated inspection across
+the wider research programme made it adaptive rather than untouched confirmation.
 
 ## Diagnostic framework
 
@@ -134,9 +222,7 @@ The evaluation asks what information supports a reported pooled score.
 | Controlled simulation | Do the diagnostics recover known static and dynamic mechanisms? |
 
 Ranking metrics use raw ensemble scores. Calibration and thresholded metrics use
-validation-selected probabilities; the two score types are not mixed. The final
-test period was inspected repeatedly across the wider research programme and is
-described as historically held out but adaptive, not untouched confirmation.
+validation-selected probabilities; the two score types are not mixed.
 
 ## Controlled simulation
 
@@ -149,6 +235,14 @@ conditions:
 - **World B:** no prior heterogeneity and deliberately planted ordered signal. At
   the strongest setting, within-asset AUC reached 0.783997; reversal and
   permutation reduced AUC by 0.380991 and 0.102297.
+
+```mermaid
+flowchart LR
+    A["World A: static heterogeneity"] --> B["Pooled AUC rises"]
+    A --> C["Within-asset AUC ~ 0.50"]
+    D["World B: planted ordered signal"] --> E["Within-asset AUC rises"]
+    D --> F["Chronology perturbations hurt"]
+```
 
 ![Two-panel controlled simulation showing static-prior inflation without temporal signal and recovered order sensitivity with planted dynamic signal](assets/readme/controlled_simulation.svg)
 
@@ -213,6 +307,12 @@ public audit path is therefore to inspect the compact metric registry, run tests
 rebuild presentation assets and, where appropriate, rerun the registered
 simulation rather than retraining opened historical models.
 
+> [!TIP]
+> For this frozen study, prefer reconstruction from compact evidence and preserved
+> prediction artefacts, where available, to unnecessary retraining on the
+> already-opened historical period. Genuinely independent future replication
+> remains appropriate.
+
 Key audit sources:
 
 - [`authoritative metric registry`](reports/tables/ifddrp_authoritative_metric_registry.csv)
@@ -251,6 +351,12 @@ quality and inclusion records are available in
 uses current-vintage downloads rather than a complete point-in-time ALFRED
 reconstruction.
 
+> [!NOTE]
+> Raw market/provider data, private predictions and model checkpoints are not
+> redistributed. Public reconstruction therefore relies on acquisition code,
+> manifests, configurations and compact frozen evidence, subject to provider
+> availability and terms.
+
 ## Broader experimental programme
 
 <details>
@@ -280,6 +386,11 @@ Across these distinct daily and hourly experimental tracks, the broader project
 processed **1,519,611 observations (approximately 1.52 million)**. This is not one
 unified dataset or one model-training sample. The daily Transformer used the
 separate 306,174-row daily panel.
+
+> [!NOTE]
+> The approximately 1.52 million observations are the sum of two distinct
+> experimental tracks: 306,174 daily observations and 1,213,437 hourly crypto
+> observations. They are not one unified dataset or one model-training sample.
 
 </details>
 
