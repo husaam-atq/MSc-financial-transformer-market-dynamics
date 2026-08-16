@@ -25,6 +25,45 @@ EXPECTED_ASSETS = (
     "controlled_simulation.svg",
     "social_preview.png",
 )
+EXPECTED_CHOOSE_PATH_LINKS = (
+    ("Examiner: key findings and methodology", "#key-finding"),
+    ("Researcher: diagnostics and simulation", "#diagnostic-framework"),
+    ("Developer: reproducibility and setup", "#reproducibility"),
+    ("Dissertation: current artefacts", "#dissertation-artefacts"),
+)
+EXPECTED_KEY_LINKS = (
+    ("Headline results", "#key-finding"),
+    ("Methodology", "#methodology"),
+    ("Diagnostic framework", "#diagnostic-framework"),
+    ("Controlled simulation", "#controlled-simulation"),
+    ("Reproducibility", "#reproducibility"),
+    ("Repository structure", "#repository-structure"),
+    ("Broader experimental programme", "#broader-experimental-programme"),
+    ("Dissertation artefacts", "#dissertation-artefacts"),
+    (
+        "Frozen release",
+        "https://github.com/husaam-atq/"
+        "MSc-financial-transformer-market-dynamics/tree/dissertation-final",
+    ),
+)
+EXPECTED_CONTENTS_LINKS = (
+    ("Research question", "#research-question"),
+    ("Key finding", "#key-finding"),
+    ("Research decision path", "#research-decision-path"),
+    ("Methodology", "#methodology"),
+    ("Leakage-aware evaluation", "#leakage-aware-evaluation"),
+    ("Diagnostic framework", "#diagnostic-framework"),
+    ("Controlled simulation", "#controlled-simulation"),
+    ("Reproducibility", "#reproducibility"),
+    ("Repository structure", "#repository-structure"),
+    ("Data access", "#data-access"),
+    ("Broader experimental programme", "#broader-experimental-programme"),
+    ("Scope and limitations", "#scope-and-limitations"),
+    ("Dissertation artefacts", "#dissertation-artefacts"),
+    ("Project status", "#project-status"),
+    ("Citation", "#citation"),
+    ("Licence", "#licence"),
+)
 
 
 def _sha256(path: Path) -> str:
@@ -35,6 +74,15 @@ def _png_dimensions(path: Path) -> tuple[int, int]:
     payload = path.read_bytes()
     assert payload[:8] == b"\x89PNG\r\n\x1a\n"
     return struct.unpack(">II", payload[16:24])
+
+
+def _paragraph_starting_with(text: str, prefix: str) -> str:
+    start = text.index(prefix)
+    return text[start:].split("\n\n", maxsplit=1)[0]
+
+
+def _links(text: str) -> tuple[tuple[str, str], ...]:
+    return tuple(re.findall(r"\[([^]]+)\]\(([^)]+)\)", text))
 
 
 def test_readme_evidence_matches_authoritative_frozen_tables() -> None:
@@ -74,6 +122,60 @@ def test_tracked_readme_assets_exist_without_local_path_metadata() -> None:
         path = ASSETS / name
         assert path.is_file()
         assert root_bytes not in path.read_bytes()
+
+
+def test_readme_retains_generated_research_graphics_and_social_preview() -> None:
+    text = README.read_text(encoding="utf-8")
+
+    for name in (
+        "graphical_abstract.svg",
+        "headline_results.svg",
+        "controlled_simulation.svg",
+    ):
+        assert f"(assets/readme/{name})" in text
+    assert (ASSETS / "graphical_abstract.png").is_file()
+    assert (ASSETS / "social_preview.png").is_file()
+
+
+def test_readme_navigation_and_contents_match_current_sections() -> None:
+    text = README.read_text(encoding="utf-8")
+    choose_path = _paragraph_starting_with(text, "**Choose your path:**")
+    key_links = _paragraph_starting_with(text, "**Key links:**")
+    contents = text.split("## Contents", maxsplit=1)[1].split(
+        "## Research question", maxsplit=1
+    )[0]
+
+    assert _links(choose_path) == EXPECTED_CHOOSE_PATH_LINKS
+    assert _links(key_links) == EXPECTED_KEY_LINKS
+    assert _links(contents) == EXPECTED_CONTENTS_LINKS
+
+
+def test_readme_has_four_expected_mermaid_flowcharts() -> None:
+    text = README.read_text(encoding="utf-8")
+    blocks = re.findall(r"```mermaid\n(.*?)\n```", text, flags=re.DOTALL)
+
+    assert len(blocks) == 4
+    assert [block.splitlines()[0] for block in blocks] == [
+        "flowchart TD",
+        "flowchart LR",
+        "flowchart LR",
+        "flowchart LR",
+    ]
+    assert "Frozen conclusion" in blocks[0]
+    assert "60 sessions x 34 numerical features" in blocks[1]
+    assert "18-date purge" in blocks[2]
+    assert "World A: static heterogeneity" in blocks[3]
+    assert "World B: planted ordered signal" in blocks[3]
+
+
+def test_readme_uses_exactly_the_requested_callout_hierarchy() -> None:
+    text = README.read_text(encoding="utf-8")
+
+    assert text.count("> [!IMPORTANT]") == 1
+    assert text.count("> [!TIP]") == 1
+    assert text.count("> [!NOTE]") == 2
+    assert "> [!WARNING]" not in text
+    assert "> [!CAUTION]" not in text
 
 
 def test_readme_uses_correct_main_and_secondary_study_framing() -> None:
