@@ -18,6 +18,8 @@ ROOT = Path(__file__).resolve().parents[1]
 TABLES = ROOT / "reports" / "tables"
 ASSETS = ROOT / "assets" / "readme"
 README = ROOT / "README.md"
+FINAL_DISSERTATION = ROOT / "reports" / "paper" / "Husaam_Ateeq_Dissertation_Final.pdf"
+FINAL_DISSERTATION_SHA256 = "53cca793e3804049e122a9b701cf22461afd2386f147e93102b463d5898f79ff"
 EXPECTED_ASSETS = (
     "graphical_abstract.svg",
     "graphical_abstract.png",
@@ -29,7 +31,7 @@ EXPECTED_CHOOSE_PATH_LINKS = (
     ("Examiner: key findings and methodology", "#key-finding"),
     ("Researcher: diagnostics and simulation", "#diagnostic-framework"),
     ("Developer: reproducibility and setup", "#reproducibility"),
-    ("Dissertation: current artefacts", "#dissertation-artefacts"),
+    ("Dissertation: final PDF", "reports/paper/Husaam_Ateeq_Dissertation_Final.pdf"),
 )
 EXPECTED_KEY_LINKS = (
     ("Headline results", "#key-finding"),
@@ -40,6 +42,7 @@ EXPECTED_KEY_LINKS = (
     ("Repository structure", "#repository-structure"),
     ("Broader experimental programme", "#broader-experimental-programme"),
     ("Dissertation artefacts", "#dissertation-artefacts"),
+    ("Dissertation map", "#dissertation--repository-map"),
     (
         "Frozen release",
         "https://github.com/husaam-atq/"
@@ -55,11 +58,13 @@ EXPECTED_CONTENTS_LINKS = (
     ("Diagnostic framework", "#diagnostic-framework"),
     ("Controlled simulation", "#controlled-simulation"),
     ("Reproducibility", "#reproducibility"),
+    ("Platform status", "#platform-status"),
     ("Repository structure", "#repository-structure"),
     ("Data access", "#data-access"),
     ("Broader experimental programme", "#broader-experimental-programme"),
     ("Scope and limitations", "#scope-and-limitations"),
     ("Dissertation artefacts", "#dissertation-artefacts"),
+    ("Dissertation ↔ repository map", "#dissertation--repository-map"),
     ("Project status", "#project-status"),
     ("Citation", "#citation"),
     ("Licence", "#licence"),
@@ -113,6 +118,7 @@ def test_readme_asset_generation_is_deterministic_and_has_expected_dimensions(
     assert [_sha256(path) for path in first] == [_sha256(path) for path in second]
     assert _png_dimensions(first[1]) == (1_800, 840)
     assert _png_dimensions(first[4]) == (1_280, 640)
+    assert first[4].stat().st_size < 1_000_000
 
 
 def test_tracked_readme_assets_exist_without_local_path_metadata() -> None:
@@ -161,11 +167,12 @@ def test_readme_has_four_expected_mermaid_flowcharts() -> None:
         "flowchart LR",
         "flowchart LR",
     ]
-    assert "Frozen conclusion" in blocks[0]
-    assert "60 sessions x 34 numerical features" in blocks[1]
-    assert "18-date purge" in blocks[2]
-    assert "World A: static heterogeneity" in blocks[3]
-    assert "World B: planted ordered signal" in blocks[3]
+    assert "Frozen<br/>conclusion" in blocks[0]
+    assert "Transformer within-asset<br/>AUC 0.492" in blocks[0]
+    assert "60 sessions x 34<br/>numerical channels" in blocks[1]
+    assert "18-date<br/>purge" in blocks[2]
+    assert "World A<br/>static heterogeneity" in blocks[3]
+    assert "World B<br/>planted ordered signal" in blocks[3]
 
 
 def test_readme_uses_exactly_the_requested_callout_hierarchy() -> None:
@@ -225,16 +232,57 @@ def test_readme_relative_links_and_images_resolve() -> None:
     assert [anchor for anchor in anchors if anchor not in headings] == []
 
 
-def test_citation_metadata_uses_known_author_and_release() -> None:
+def test_citation_metadata_is_prepared_for_release_without_fabricated_date() -> None:
     citation = yaml.safe_load((ROOT / "CITATION.cff").read_text(encoding="utf-8"))
 
     assert citation["cff-version"] == "1.2.0"
+    assert citation["title"] == (
+        "Interpretable Transformer Models for Financial Time Series Forecasting: "
+        "Discovering Emergent Market Dynamics"
+    )
     assert citation["authors"] == [
         {"family-names": "Ateeq", "given-names": "Muhammad Husaam"}
     ]
-    assert citation["version"] == "dissertation-final"
-    assert citation["date-released"] == "2026-08-13"
+    assert citation["version"] == "1.0.0"
+    assert "date-released" not in citation
+    assert citation["license"] == "BSD-3-Clause"
     assert citation["repository-code"] == (
         "https://github.com/husaam-atq/MSc-financial-transformer-market-dynamics"
     )
     assert "doi" not in citation
+    assert "orcid" not in citation["authors"][0]
+
+
+def test_final_dissertation_and_scoped_licensing_are_publicly_linked() -> None:
+    text = README.read_text(encoding="utf-8")
+
+    assert FINAL_DISSERTATION.is_file()
+    assert _sha256(FINAL_DISSERTATION) == FINAL_DISSERTATION_SHA256
+    assert not (ROOT / "reports" / "paper" / "draft_dissertation_paper_v4.pdf").exists()
+    assert "Muhammad Husaam Ateeq CA" in text
+    assert "[Final dissertation PDF](reports/paper/Husaam_Ateeq_Dissertation_Final.pdf)" in text
+
+    software_licence = (ROOT / "LICENSE").read_text(encoding="utf-8")
+    docs_licence = (ROOT / "LICENSE-DOCS.md").read_text(encoding="utf-8")
+    scope = (ROOT / "LICENSING.md").read_text(encoding="utf-8")
+    assert software_licence.startswith("BSD 3-Clause License")
+    assert "Copyright (c) 2026, Muhammad Husaam Ateeq" in software_licence
+    assert "Creative Commons Attribution 4.0 International" in " ".join(
+        docs_licence.split()
+    )
+    normalized_scope = " ".join(scope.split())
+    assert "submitted dissertation" in normalized_scope
+    assert "provider-derived data" in normalized_scope
+    assert "[BSD 3-Clause License](LICENSE)" in text
+    assert "[CC BY 4.0](LICENSE-DOCS.md)" in text
+
+
+def test_readme_platform_claims_match_public_execution_paths() -> None:
+    text = README.read_text(encoding="utf-8")
+
+    assert "#### Windows (PowerShell)" in text
+    assert "#### macOS / Linux (POSIX shell)" in text
+    assert "source .venv/bin/activate" in text
+    assert "| Ubuntu, x86-64, CPU | Verified in CI |" in text
+    assert "| macOS, CPU | Expected but not tested |" in text
+    assert "| Apple MPS | Not supported or validated |" in text

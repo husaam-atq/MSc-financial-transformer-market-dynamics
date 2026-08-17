@@ -33,6 +33,15 @@ PALE_BLUE = "#EEF3F8"
 PALE_GOLD = "#FAF5E8"
 PALE_RED = "#F8ECEB"
 WHITE = "#FFFFFF"
+NAVY = "#071C26"
+DARK_PANEL = "#102D38"
+DARK_PANEL_ALT = "#163743"
+LIGHT_INK = "#F4F8F9"
+LIGHT_MID = "#ABC0C7"
+BRIGHT_TEAL = "#43B7C3"
+BRIGHT_GOLD = "#E0AA3E"
+BRIGHT_RED = "#D86661"
+BRIGHT_BLUE = "#6E95CE"
 
 matplotlib.rcParams.update(
     {
@@ -162,160 +171,158 @@ def build_readme_assets(output_dir: Path, tables_dir: Path) -> tuple[Path, ...]:
 
 def _make_graphical_abstract(svg_path: Path, png_path: Path, evidence: ReadmeEvidence) -> None:
     fig, ax = plt.subplots(figsize=(15, 7), dpi=120)
-    fig.patch.set_facecolor(WHITE)
+    fig.patch.set_facecolor(NAVY)
+    ax.set_facecolor(NAVY)
     ax.set_xlim(0, 1)
     ax.set_ylim(0, 1)
     ax.axis("off")
 
     ax.text(
-        0.04,
-        0.945,
+        0.035,
+        0.96,
         "When does pooled forecasting measure temporal skill?",
-        fontsize=25,
+        fontsize=24,
         fontweight="bold",
-        color=INK,
+        color=LIGHT_INK,
         va="top",
     )
     ax.text(
-        0.04,
-        0.895,
-        "A multi-asset Transformer examined through static, within-asset, identity and order controls",
-        fontsize=12.5,
-        color=MID,
+        0.035,
+        0.905,
+        "One apparent result, three adversarial checks, and a controlled mechanism test",
+        fontsize=11.5,
+        color=LIGHT_MID,
         va="top",
     )
 
-    _box(
+    _dark_box(
         ax,
-        0.04,
-        0.59,
-        0.24,
-        0.23,
-        "DAILY MULTI-ASSET INPUT",
+        0.035,
+        0.68,
+        0.25,
+        0.16,
+        "MULTI-ASSET INPUT",
         (
             f"{MODEL_WINDOW_ASSET_COUNT} evaluated instruments / 6 families",
-            f"{METHODOLOGY_FIGURE_DATA.lookback} observed sessions x "
-            f"{METHODOLOGY_FIGURE_DATA.numerical_channels} numerical channels",
-            f"+ {METHODOLOGY_FIGURE_DATA.asset_embedding_dim}-D learned asset embedding",
+            f"{METHODOLOGY_FIGURE_DATA.lookback} sessions x "
+            f"{METHODOLOGY_FIGURE_DATA.numerical_channels} channels + asset identity",
         ),
-        accent=TEAL,
-        fill=LIGHT,
+        accent=BRIGHT_TEAL,
     )
-    _box(
+    _dark_box(
         ax,
-        0.38,
-        0.59,
-        0.24,
-        0.23,
+        0.375,
+        0.68,
+        0.25,
+        0.16,
         "TRANSFORMER",
         (
-            f"{METHODOLOGY_FIGURE_DATA.encoder_layers}-layer encoder + temporal attention",
-            f"{METHODOLOGY_FIGURE_DATA.parameters:,} parameters",
-            f"Pooled ROC-AUC  {evidence.transformer_pooled_auc:.3f}",
+            f"{METHODOLOGY_FIGURE_DATA.encoder_layers}-layer encoder + attention pooling",
+            f"{METHODOLOGY_FIGURE_DATA.parameters:,} trainable parameters",
         ),
-        accent=BLUE,
-        fill=PALE_BLUE,
+        accent=BRIGHT_BLUE,
     )
-    _box(
+    _dark_box(
         ax,
-        0.72,
-        0.59,
-        0.24,
-        0.23,
-        "POOLED SCORE LOOKS STRONG",
+        0.715,
+        0.68,
+        0.25,
+        0.16,
+        "POOLED RESULT LOOKS STRONG",
         (
             f"ROC-AUC  {evidence.transformer_pooled_auc:.3f}",
-            f"PR-AUC    {evidence.transformer_pr_auc:.3f}",
-            "But pooled ranking mixes within- and between-asset pairs",
+            f"PR-AUC  {evidence.transformer_pr_auc:.3f}",
         ),
-        accent=RED,
-        fill=PALE_RED,
+        accent=BRIGHT_RED,
     )
-    _arrow(ax, (0.285, 0.705), (0.372, 0.705), BLUE)
-    _arrow(ax, (0.625, 0.705), (0.712, 0.705), BLUE)
+    _dark_arrow(ax, (0.288, 0.76), (0.37, 0.76))
+    _dark_arrow(ax, (0.628, 0.76), (0.71, 0.76))
 
     ax.text(
-        0.04,
-        0.52,
-        "ADVERSARIAL CHECKS",
-        fontsize=11,
+        0.035,
+        0.615,
+        "CHALLENGE / DIAGNOSE",
+        fontsize=10.5,
         fontweight="bold",
-        color=MID,
+        color=LIGHT_MID,
         va="center",
     )
-    _box(
+    _dark_box(
         ax,
-        0.04,
-        0.29,
+        0.035,
+        0.39,
         0.28,
-        0.18,
-        "STATIC BENCHMARK",
+        0.16,
+        "STATIC PRIOR",
         (
-            f"Asset prior pooled AUC  {evidence.static_asset_prior_auc:.3f}",
-            "Training labels only; score is constant through time",
+            f"Pooled AUC  {evidence.static_asset_prior_auc:.3f}",
+            "Constant through time within each asset",
         ),
-        accent=GOLD,
-        fill=PALE_GOLD,
+        accent=BRIGHT_GOLD,
     )
-    _box(
+    _dark_box(
         ax,
         0.36,
-        0.29,
+        0.39,
         0.28,
-        0.18,
-        "WITHIN-ASSET ESTIMAND",
+        0.16,
+        "WITHIN-ASSET TEST",
         (
-            f"Transformer within-asset AUC  {evidence.transformer_within_auc:.3f}",
-            "Approximately chance ranking within the same instrument",
+            f"Transformer AUC  {evidence.transformer_within_auc:.3f}",
+            "Approximately chance within instruments",
         ),
-        accent=TEAL,
-        fill=LIGHT,
+        accent=BRIGHT_TEAL,
     )
-    _box(
+    _dark_box(
         ax,
-        0.68,
-        0.29,
+        0.685,
+        0.39,
         0.28,
-        0.18,
+        0.16,
         "IDENTITY + ORDER TESTS",
         (
-            f"No asset ID pooled AUC  {evidence.no_asset_id_auc:.3f}",
-            f"Largest registered order change  {evidence.maximum_order_auc_change:.4f}",
+            f"No-ID pooled AUC  {evidence.no_asset_id_auc:.3f}",
+            f"Largest order change  {evidence.maximum_order_auc_change:.4f}",
         ),
-        accent=RED,
-        fill=PALE_RED,
+        accent=BRIGHT_RED,
     )
-    _arrow(ax, (0.84, 0.585), (0.84, 0.49), RED)
+    ax.plot((0.84, 0.84), (0.675, 0.59), color=BRIGHT_RED, linewidth=1.35)
+    ax.plot((0.175, 0.84), (0.59, 0.59), color=BRIGHT_RED, linewidth=1.35)
+    for target_x in (0.175, 0.5, 0.825):
+        _dark_arrow(ax, (target_x, 0.59), (target_x, 0.555), colour=BRIGHT_RED)
 
-    _box(
+    ax.plot((0.175, 0.825), (0.335, 0.335), color=LIGHT_MID, linewidth=1.2, alpha=0.8)
+    for source_x in (0.175, 0.5, 0.825):
+        ax.plot((source_x, source_x), (0.39, 0.335), color=LIGHT_MID, linewidth=1.2, alpha=0.8)
+
+    _dark_box(
         ax,
-        0.04,
-        0.07,
-        0.43,
-        0.14,
+        0.11,
+        0.09,
+        0.37,
+        0.16,
         "CONTROLLED SIMULATION",
         (
             f"{evidence.simulation_runs:,} registered runs",
-            "Static heterogeneity inflates pooled AUC; planted ordered signal restores sensitivity",
+            "Static heterogeneity versus planted order",
         ),
-        accent=BLUE,
-        fill=PALE_BLUE,
+        accent=BRIGHT_BLUE,
     )
-    _box(
+    _dark_box(
         ax,
-        0.55,
-        0.07,
-        0.41,
-        0.14,
+        0.57,
+        0.09,
+        0.395,
+        0.16,
         "DIAGNOSTIC CONCLUSION",
         (
-            "High pooled discrimination did not establish robust temporal skill.",
-            "Evaluate pooled models with within-asset, identity and order controls.",
+            "Strong pooled discrimination did not establish",
+            "robust temporal forecasting skill.",
         ),
-        accent=INK,
-        fill=WHITE,
+        accent=LIGHT_INK,
     )
-    _arrow(ax, (0.475, 0.14), (0.54, 0.14), BLUE)
+    _dark_arrow(ax, (0.5, 0.33), (0.295, 0.255), colour=BRIGHT_BLUE)
+    _dark_arrow(ax, (0.485, 0.17), (0.565, 0.17), colour=BRIGHT_BLUE)
 
     fig.subplots_adjust(left=0, right=1, top=1, bottom=0)
     _save_svg(fig, svg_path, "Graphical abstract of the shortcut-learning diagnostic")
@@ -493,113 +500,104 @@ def _make_controlled_simulation(path: Path, simulation) -> None:
 
 def _make_social_preview(path: Path, evidence: ReadmeEvidence) -> None:
     fig, ax = plt.subplots(figsize=(12.8, 6.4), dpi=100)
-    fig.patch.set_facecolor(WHITE)
+    fig.patch.set_facecolor(NAVY)
+    ax.set_facecolor(NAVY)
     ax.set_xlim(0, 1)
     ax.set_ylim(0, 1)
     ax.axis("off")
 
-    ax.add_patch(FancyBboxPatch((0, 0), 1, 1, boxstyle="square,pad=0", facecolor=WHITE))
-    ax.add_patch(
-        FancyBboxPatch(
-            (0, 0),
-            0.022,
-            1,
-            boxstyle="square,pad=0",
-            facecolor=TEAL,
-            edgecolor=TEAL,
-        )
+    signal_x = np.linspace(0, 1, 500)
+    for offset, colour in ((0.06, BRIGHT_TEAL), (0.14, BRIGHT_BLUE), (0.22, BRIGHT_GOLD)):
+        signal_y = 0.78 + 0.025 * np.sin(18 * signal_x + offset * 18)
+        signal_y += 0.012 * np.sin(47 * signal_x + offset * 9)
+        ax.plot(signal_x, signal_y, color=colour, alpha=0.10, linewidth=1.2)
+
+    ax.add_patch(FancyBboxPatch((0.0, 0.0), 0.018, 1.0, boxstyle="square,pad=0", facecolor=BRIGHT_TEAL, edgecolor="none"))
+    ax.text(
+        0.055,
+        0.88,
+        "INTERPRETABLE TRANSFORMER MODELS",
+        fontsize=13,
+        fontweight="bold",
+        color=BRIGHT_TEAL,
+        va="top",
     )
     ax.text(
-        0.065,
-        0.84,
-        "Interpretable Transformer Models",
+        0.055,
+        0.80,
+        "Financial time series forecasting\nunder adversarial evaluation",
         fontsize=26,
         fontweight="bold",
-        color=INK,
+        color=LIGHT_INK,
         va="top",
+        linespacing=1.1,
     )
     ax.text(
-        0.065,
-        0.765,
-        "for Financial Time Series Forecasting",
-        fontsize=23,
+        0.055,
+        0.58,
+        "Muhammad Husaam Ateeq CA",
+        fontsize=12.5,
         fontweight="bold",
-        color=INK,
+        color=LIGHT_MID,
         va="top",
     )
-    ax.text(
-        0.065,
-        0.65,
-        "Separating cross-sectional shortcut learning\nfrom genuine temporal skill",
-        fontsize=14,
-        color=MID,
-        va="top",
-        linespacing=1.35,
-    )
+    ax.text(0.055, 0.525, "MSc Data Science and Artificial Intelligence", fontsize=10.5, color=LIGHT_MID, va="top")
 
     metric_rows = (
-        ("Static asset prior", evidence.static_asset_prior_auc, GOLD),
-        ("Transformer pooled", evidence.transformer_pooled_auc, BLUE),
-        ("Transformer within asset", evidence.transformer_within_auc, TEAL),
+        ("Transformer pooled AUC", evidence.transformer_pooled_auc, BRIGHT_BLUE),
+        ("Static asset prior", evidence.static_asset_prior_auc, BRIGHT_GOLD),
+        ("Within-asset AUC", evidence.transformer_within_auc, BRIGHT_TEAL),
     )
     for index, (label, value, colour) in enumerate(metric_rows):
-        y = 0.75 - index * 0.20
-        ax.text(0.60, y + 0.055, label, fontsize=12, color=INK, va="center")
+        y = 0.71 - index * 0.18
         ax.add_patch(
             FancyBboxPatch(
-                (0.60, y - 0.015),
-                0.30,
-                0.042,
-                boxstyle="round,pad=0,rounding_size=0.012",
-                facecolor="#E5EBED",
-                edgecolor="none",
+                (0.61, y - 0.045),
+                0.335,
+                0.13,
+                boxstyle="round,pad=0.012,rounding_size=0.018",
+                facecolor=DARK_PANEL_ALT,
+                edgecolor=colour,
+                linewidth=1.4,
             )
         )
-        ax.add_patch(
-            FancyBboxPatch(
-                (0.60, y - 0.015),
-                0.30 * value,
-                0.042,
-                boxstyle="round,pad=0,rounding_size=0.012",
-                facecolor=colour,
-                edgecolor="none",
-            )
-        )
-        ax.text(0.94, y + 0.005, f"{value:.3f}", fontsize=18, fontweight="bold", ha="right")
+        ax.text(0.635, y + 0.042, label, fontsize=10.5, color=LIGHT_MID, va="center")
+        ax.text(0.92, y + 0.008, f"{value:.3f}", fontsize=23, fontweight="bold", color=colour, ha="right", va="center")
 
     ax.add_patch(
         FancyBboxPatch(
-            (0.055, 0.105),
-            0.89,
-            0.13,
+            (0.05, 0.105),
+            0.895,
+            0.15,
             boxstyle="round,pad=0.012,rounding_size=0.015",
-            facecolor=INK,
-            edgecolor=INK,
+            facecolor=DARK_PANEL,
+            edgecolor=BRIGHT_RED,
+            linewidth=1.5,
         )
     )
     ax.text(
-        0.50,
-        0.17,
-        "Strong pooled ranking did not establish robust temporal forecasting skill",
-        fontsize=14.5,
+        0.497,
+        0.18,
+        "Strong pooled performance does not imply robust temporal skill",
+        fontsize=16,
         fontweight="bold",
-        color=WHITE,
+        color=LIGHT_INK,
         ha="center",
         va="center",
     )
     ax.text(
-        0.065,
-        0.04,
-        "MSc Data Science research artefact | within-asset metrics, identity controls, order attacks and simulation",
-        fontsize=9.5,
-        color=MID,
+        0.055,
+        0.045,
+        "Static priors | within-asset evaluation | identity interventions | chronology perturbations | 1,040 simulations",
+        fontsize=9.2,
+        color=LIGHT_MID,
     )
     fig.subplots_adjust(left=0, right=1, top=1, bottom=0)
     _save_png(fig, path, "Repository social preview", dpi=100)
     plt.close(fig)
 
 
-def _box(
+def _dark_box(
     ax,
     x: float,
     y: float,
@@ -609,54 +607,67 @@ def _box(
     lines: tuple[str, ...],
     *,
     accent: str,
-    fill: str,
 ) -> None:
     ax.add_patch(
         FancyBboxPatch(
             (x, y),
             width,
             height,
-            boxstyle="round,pad=0.012,rounding_size=0.012",
-            facecolor=fill,
+            boxstyle="round,pad=0.010,rounding_size=0.012",
+            facecolor=DARK_PANEL,
             edgecolor=accent,
             linewidth=1.5,
         )
     )
     ax.add_patch(
         FancyBboxPatch(
-            (x, y),
+            (x + 0.012, y + 0.018),
             0.007,
-            height,
-            boxstyle="round,pad=0,rounding_size=0.006",
+            height - 0.036,
+            boxstyle="round,pad=0,rounding_size=0.004",
             facecolor=accent,
-            edgecolor=accent,
-            linewidth=0,
+            edgecolor="none",
         )
     )
-    ax.text(x + 0.022, y + height - 0.042, title, fontsize=9.5, fontweight="bold", color=accent)
-    line_y = y + height - 0.085
+    ax.text(
+        x + 0.03,
+        y + height - 0.037,
+        title,
+        fontsize=9.2,
+        fontweight="bold",
+        color=accent,
+        va="top",
+    )
+    line_y = y + height - 0.081
     for index, line in enumerate(lines):
         ax.text(
-            x + 0.022,
-            line_y - index * 0.039,
+            x + 0.03,
+            line_y - index * 0.035,
             line,
-            fontsize=9.0,
-            color=INK,
+            fontsize=8.5,
+            color=LIGHT_INK,
             va="top",
         )
 
 
-def _arrow(ax, start: tuple[float, float], end: tuple[float, float], colour: str) -> None:
+def _dark_arrow(
+    ax,
+    start: tuple[float, float],
+    end: tuple[float, float],
+    *,
+    colour: str = BRIGHT_BLUE,
+) -> None:
     ax.add_patch(
         FancyArrowPatch(
             start,
             end,
             arrowstyle="-|>",
-            mutation_scale=13,
-            linewidth=1.5,
+            mutation_scale=12,
+            linewidth=1.35,
             color=colour,
             shrinkA=0,
             shrinkB=0,
+            alpha=0.95,
         )
     )
 
@@ -666,7 +677,7 @@ def _save_svg(fig, path: Path, title: str) -> None:
     fig.savefig(
         path,
         format="svg",
-        facecolor=WHITE,
+        facecolor=fig.get_facecolor(),
         metadata={"Title": title, "Creator": "Matplotlib", "Date": None},
     )
     lines = path.read_text(encoding="utf-8").splitlines()
@@ -683,7 +694,7 @@ def _save_png(fig, path: Path, title: str, *, dpi: int) -> None:
         path,
         format="png",
         dpi=dpi,
-        facecolor=WHITE,
+        facecolor=fig.get_facecolor(),
         metadata={"Title": title, "Author": "Muhammad Husaam Ateeq"},
     )
 

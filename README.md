@@ -1,11 +1,14 @@
-# Interpretable Transformer Models for Financial Time Series Forecasting
+# Interpretable Transformer Models for Financial Time Series Forecasting: Discovering Emergent Market Dynamics
 
-**Discovering Emergent Market Dynamics**
+**Muhammad Husaam Ateeq CA** · MSc Data Science and Artificial Intelligence,
+Queen Mary University of London
 
 [![Public repository CI](https://img.shields.io/github/actions/workflow/status/husaam-atq/MSc-financial-transformer-market-dynamics/ci.yml?branch=main&style=flat-square&label=CI)](https://github.com/husaam-atq/MSc-financial-transformer-market-dynamics/actions/workflows/ci.yml)
 [![Python 3.11+](https://img.shields.io/badge/Python-3.11%2B-3776AB?style=flat-square&logo=python&logoColor=white)](https://www.python.org/)
 [![PyTorch 2.9+](https://img.shields.io/badge/PyTorch-2.9%2B-EE4C2C?style=flat-square&logo=pytorch&logoColor=white)](https://pytorch.org/)
 [![Research status](https://img.shields.io/badge/research-frozen-2A7F8E?style=flat-square)](#project-status)
+[![Code licence](https://img.shields.io/badge/code-BSD--3--Clause-486A9A?style=flat-square)](LICENSE)
+[![Docs licence](https://img.shields.io/badge/docs-CC_BY_4.0-C38D2E?style=flat-square)](LICENSE-DOCS.md)
 
 A multi-asset forecasting study testing whether strong pooled Transformer
 performance reflects genuine temporal skill or persistent cross-sectional
@@ -31,13 +34,14 @@ registered controlled simulation.*
 **Choose your path:** [Examiner: key findings and methodology](#key-finding) |
 [Researcher: diagnostics and simulation](#diagnostic-framework) |
 [Developer: reproducibility and setup](#reproducibility) |
-[Dissertation: current artefacts](#dissertation-artefacts)
+[Dissertation: final PDF](reports/paper/Husaam_Ateeq_Dissertation_Final.pdf)
 
 **Key links:** [Headline results](#key-finding) | [Methodology](#methodology) |
 [Diagnostic framework](#diagnostic-framework) | [Controlled simulation](#controlled-simulation) |
 [Reproducibility](#reproducibility) | [Repository structure](#repository-structure) |
 [Broader experimental programme](#broader-experimental-programme) |
 [Dissertation artefacts](#dissertation-artefacts) |
+[Dissertation map](#dissertation--repository-map) |
 [Frozen release](https://github.com/husaam-atq/MSc-financial-transformer-market-dynamics/tree/dissertation-final)
 
 ## Contents
@@ -50,11 +54,13 @@ registered controlled simulation.*
 - [Diagnostic framework](#diagnostic-framework)
 - [Controlled simulation](#controlled-simulation)
 - [Reproducibility](#reproducibility)
+- [Platform status](#platform-status)
 - [Repository structure](#repository-structure)
 - [Data access](#data-access)
 - [Broader experimental programme](#broader-experimental-programme)
 - [Scope and limitations](#scope-and-limitations)
 - [Dissertation artefacts](#dissertation-artefacts)
+- [Dissertation ↔ repository map](#dissertation--repository-map)
 - [Project status](#project-status)
 - [Citation](#citation)
 - [Licence](#licence)
@@ -120,16 +126,16 @@ than untouched confirmation.
 ```mermaid
 flowchart TD
     A["Pooled Transformer"] --> B["Pooled AUC 0.790"]
-    B --> C["Static-prior benchmark"]
-    C --> D["Asset prior AUC 0.824"]
-    D --> E["Within-asset evaluation"]
-    E --> F["Transformer within AUC 0.492"]
-    F --> G["Identity diagnostics"]
-    G --> H["Chronology perturbations"]
-    H --> I["Five-model comparison"]
-    I --> J["1,040-run simulation"]
-    J --> K["Recovery tests"]
-    K --> L["Frozen conclusion"]
+    B --> C["Static-prior<br/>benchmark"]
+    C --> D["Asset prior AUC<br/>0.824"]
+    D --> E["Within-asset<br/>evaluation"]
+    E --> F["Transformer within-asset<br/>AUC 0.492"]
+    F --> G["Identity<br/>diagnostics"]
+    G --> H["Chronology<br/>perturbations"]
+    H --> I["Five-model<br/>comparison"]
+    I --> J["Controlled simulation<br/>1,040 runs"]
+    J --> K["Diagnostic<br/>recovery tests"]
+    K --> L["Frozen<br/>conclusion"]
 ```
 
 ---
@@ -158,11 +164,11 @@ terminal loss, path drawdown or volatility escalation condition is met.
 
 ```mermaid
 flowchart LR
-    A["60 sessions x 34 numerical features"] --> C["46-channel conditioned input"]
-    B["12-D asset embedding"] --> C
-    C --> D["Projection + position"]
-    D --> E["2-layer Transformer"]
-    E --> F["Attention pooling"]
+    A["60 sessions x 34<br/>numerical channels"] --> C["46-channel<br/>conditioned input"]
+    B["12-D learned<br/>asset embedding"] --> C
+    C --> D["Projection +<br/>position"]
+    D --> E["2-layer<br/>Transformer"]
+    E --> F["Attention<br/>pooling"]
     F --> G["Risk score"]
 ```
 
@@ -195,14 +201,14 @@ audit found zero target intervals crossing the final split boundaries.
 
 ```mermaid
 flowchart LR
-    A["Train"] --> B["18-date purge"]
-    A --> F["Fit preprocessing + priors"]
+    A["Train"] --> B["18-date<br/>purge"]
+    A --> F["Fit preprocessing<br/>and priors"]
     B --> C["Validation"]
-    C --> D["Embargo + purge"]
-    C --> G["Stopping + calibration"]
+    C --> D["Embargo +<br/>purge"]
+    C --> G["Stopping +<br/>calibration"]
     D --> E["Test"]
-    E --> H["Fixed evaluation"]
-    H --> I["Grouped metrics + diagnostics"]
+    E --> H["Fixed<br/>evaluation"]
+    H --> I["Grouped metrics<br/>and diagnostics"]
 ```
 
 The final test period was historically held out, but repeated inspection across
@@ -242,10 +248,10 @@ conditions:
 
 ```mermaid
 flowchart LR
-    A["World A: static heterogeneity"] --> B["Pooled AUC rises"]
-    A --> C["Within-asset AUC ~ 0.50"]
-    D["World B: planted ordered signal"] --> E["Within-asset AUC rises"]
-    D --> F["Chronology perturbations hurt"]
+    A["World A<br/>static heterogeneity"] --> B["Pooled AUC<br/>rises"]
+    A --> C["Within-asset AUC<br/>near 0.50"]
+    D["World B<br/>planted ordered signal"] --> E["Within-asset AUC<br/>rises"]
+    D --> F["Chronology attacks<br/>reduce AUC"]
 ```
 
 ![Two-panel controlled simulation showing static-prior inflation without temporal signal and recovered order sensitivity with planted dynamic signal](assets/readme/controlled_simulation.svg)
@@ -262,8 +268,10 @@ and [`gate inference`](reports/tables/prp1_study_a_independent_simulation_gate_i
 
 ### Quick start
 
-The following PowerShell path reproduces the public validation environment on
-Python 3.11 or later. The CPU PyTorch wheel is sufficient for tests and reporting.
+The CPU PyTorch wheel is sufficient for tests and reporting. Python 3.11 or later
+is required.
+
+#### Windows (PowerShell)
 
 ```powershell
 py -m venv .venv
@@ -272,6 +280,18 @@ py -m venv .venv
 .venv\Scripts\python.exe -m pip install -e ".[dev]"
 .venv\Scripts\python.exe -m pytest
 .venv\Scripts\python.exe scripts/check_public_hygiene.py
+```
+
+#### macOS / Linux (POSIX shell)
+
+```bash
+python3 -m venv .venv
+source .venv/bin/activate
+python -m pip install --upgrade pip
+python -m pip install --index-url https://download.pytorch.org/whl/cpu "torch>=2.9"
+python -m pip install -e ".[dev]"
+python -m pytest
+python scripts/check_public_hygiene.py
 ```
 
 Rebuild the tracked README and repository-preview assets from frozen compact
@@ -283,6 +303,16 @@ evidence tables:
 
 The generator writes deterministic files under [`assets/readme/`](assets/readme/)
 and does not load raw market data, predictions or model checkpoints.
+
+### Platform status
+
+| Platform / backend | Status | Evidence and limitation |
+|---|---|---|
+| Windows 11, x86-64, CPU | Verified locally | Full public suite passed on Python 3.14 during release QA; the package supports Python 3.11+. |
+| Ubuntu, x86-64, CPU | Verified in CI | [GitHub Actions](.github/workflows/ci.yml) runs Python 3.11, Ruff, pytest, hygiene and compileall. |
+| macOS, CPU | Expected but not tested | The POSIX installation mirrors CI, but neither Intel nor Apple-silicon hardware was verified for this release. |
+| NVIDIA CUDA | Supported, not CI-verified | The device resolver supports `auto`, `cpu` and `cuda`; public CI is CPU-only. |
+| Apple MPS | Not supported or validated | The project device selector accepts CPU/CUDA only; this release does not add an MPS path. |
 
 <details>
 <summary><strong>Paper/reporting smoke build</strong></summary>
@@ -333,13 +363,14 @@ Key audit sources:
 assets/readme/             Reproducible public presentation graphics
 configs/                   Frozen study, model and universe specifications
 data/manifests/            Compact provider quality and inclusion manifests
-reports/paper/             Existing dissertation draft artefacts
+reports/paper/             Final dissertation PDF and retained development source
 reports/tables/            Frozen evidence, audits and compact result tables
 scripts/                   Reproduction, validation and reporting entry points
 src/market_dynamics/       Data, modelling, evaluation and reporting package
 tests/                     Leakage, metric, model and reproducibility tests
 .github/workflows/         Public CI validation
 CITATION.cff               Repository citation metadata
+LICENSE* / LICENSING.md    Scoped software, documentation and exclusion terms
 ```
 
 ## Data access
@@ -421,15 +452,32 @@ separate 306,174-row daily panel.
 
 ## Dissertation artefacts
 
-The repository retains the existing V4 dissertation artefacts; this presentation
-pass does not replace or revise them:
+The submitted dissertation PDF is the authoritative scholarly artefact:
 
-- [Markdown source](reports/paper/draft_dissertation_paper_v4.md)
-- [Editable DOCX](reports/paper/draft_dissertation_paper_v4.docx)
-- [Eight-page PDF](reports/paper/draft_dissertation_paper_v4.pdf)
+- [Final dissertation PDF](reports/paper/Husaam_Ateeq_Dissertation_Final.pdf)
+- [V4 development Markdown](reports/paper/draft_dissertation_paper_v4.md)
+- [V4 development DOCX](reports/paper/draft_dissertation_paper_v4.docx)
+
+The editable V4 files are retained as development provenance; they are not a
+byte-identical source for the submitted PDF and do not supersede it.
 
 The original frozen research release remains at the
 [`dissertation-final` tag](https://github.com/husaam-atq/MSc-financial-transformer-market-dynamics/tree/dissertation-final).
+
+## Dissertation ↔ repository map
+
+The final PDF is authoritative. Public generators and compact evidence support
+the major figures and tables; raw provider data, predictions and checkpoints are
+not redistributed.
+
+| Dissertation artefact | Repository source / generator | Frozen evidence / output |
+|---|---|---|
+| Figure 1 — forecast design and chronological evaluation | [`build_dissertation_paper.py`](scripts/build_dissertation_paper.py) | [`phase6_config.yaml`](configs/phase6_config.yaml); [`authoritative specification`](reports/tables/ifddrp_transformer_authoritative_specification.md) |
+| Figure 2 — pooled versus within-asset ROC-AUC | [`build_dissertation_paper.py`](scripts/build_dissertation_paper.py) | [`metric registry`](reports/tables/ifddrp_authoritative_metric_registry.csv); [`identity/dynamics decomposition`](reports/tables/ifddrp_identity_dynamic_information_decomposition.csv) |
+| Table 3 and Figure A1 — cross-model ranking | [V4 development source](reports/paper/draft_dissertation_paper_v4.md); [`build_dissertation_paper.py`](scripts/build_dissertation_paper.py) | [`cross-model results`](reports/tables/prp1_fixed_cross_model_results.csv); [`temporal-skill gates`](reports/tables/prp1_fixed_cross_model_temporal_skill_gates.csv) |
+| Figure 3 — controlled simulation | [`build_dissertation_paper.py`](scripts/build_dissertation_paper.py) | [`simulation results`](reports/tables/prp1_study_a_independent_simulation_results.csv); [`gate inference`](reports/tables/prp1_study_a_independent_simulation_gate_inference.csv) |
+| Figure A2 — identity and order diagnostics | [`build_dissertation_paper.py`](scripts/build_dissertation_paper.py) | [`identity swap`](reports/tables/phase6_identity_swap_results.csv); [`temporal order`](reports/tables/phase6_temporal_order_destruction.csv) |
+| Figures A3/A4 — prevalence diagnostics | [`build_dissertation_paper.py`](scripts/build_dissertation_paper.py) | [`model-window endpoint labels`](src/market_dynamics/reporting/data/final_model_window_prevalence.csv) |
 
 ## Project status
 
@@ -445,13 +493,21 @@ Citation metadata are provided in [`CITATION.cff`](CITATION.cff).
 
 > Muhammad Husaam Ateeq (2026). *Interpretable Transformer Models for Financial
 > Time Series Forecasting: Discovering Emergent Market Dynamics*. MSc Data Science
-> dissertation, Queen Mary University of London. Public research release:
-> `dissertation-final`.
+> dissertation, Queen Mary University of London.
 
-No DOI or publication status is claimed.
+`CITATION.cff` is prepared for software version 1.0.0 without a fabricated
+release date. No DOI or publication status is claimed.
 
 ## Licence
 
-No software or data licence has been selected. Public visibility does not itself
-grant reuse rights; choosing a licence remains an explicit repository-owner
-decision.
+Project software is licensed under the [BSD 3-Clause License](LICENSE). Original
+repository documentation and generated README figures are licensed under
+[CC BY 4.0](LICENSE-DOCS.md) within the scope stated there.
+
+The submitted dissertation PDF, provider data, third-party content, trademarks,
+and separately attributed material are excluded from those grants unless their
+own terms say otherwise. See [`LICENSING.md`](LICENSING.md) for the exact scope.
+
+---
+
+Repository maintained by **Muhammad Husaam Ateeq CA**.
