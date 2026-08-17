@@ -1,5 +1,5 @@
 cff-version: 1.2.0
-message: "If you use this repository, please cite the dissertation and software release."
+message: "If you use this repository, please cite the preferred dissertation reference and software release metadata."
 title: "Interpretable Transformer Models for Financial Time Series Forecasting: Discovering Emergent Market Dynamics"
 type: software
 authors:
@@ -9,9 +9,20 @@ version: "1.0.0"
 repository-code: "https://github.com/husaam-atq/MSc-financial-transformer-market-dynamics"
 abstract: >-
   Software, configuration, tests and frozen evidence supporting an MSc Data
-  Science dissertation on whether pooled multi-asset Transformer discrimination
-  reflects temporal forecasting skill or static cross-sectional structure.
+  Science and Artificial Intelligence dissertation on whether pooled multi-asset
+  Transformer discrimination reflects temporal forecasting skill or static
+  cross-sectional structure.
 license: "BSD-3-Clause"
+preferred-citation:
+  type: thesis
+  authors:
+    - family-names: "Ateeq"
+      given-names: "Muhammad Husaam"
+  title: "Interpretable Transformer Models for Financial Time Series Forecasting: Discovering Emergent Market Dynamics"
+  year: 2026
+  thesis-type: "MSc dissertation"
+  institution:
+    name: "Queen Mary University of London"
 keywords:
   - financial time series
   - machine learning

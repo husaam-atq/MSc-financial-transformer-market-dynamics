@@ -8,14 +8,14 @@ Queen Mary University of London
 [![PyTorch 2.9+](https://img.shields.io/badge/PyTorch-2.9%2B-EE4C2C?style=flat-square&logo=pytorch&logoColor=white)](https://pytorch.org/)
 [![Research status](https://img.shields.io/badge/research-frozen-2A7F8E?style=flat-square)](#project-status)
 [![Code licence](https://img.shields.io/badge/code-BSD--3--Clause-486A9A?style=flat-square)](LICENSE)
-[![Docs licence](https://img.shields.io/badge/docs-CC_BY_4.0-C38D2E?style=flat-square)](LICENSE-DOCS.md)
+[![Docs licence](https://img.shields.io/badge/docs-CC_BY_4.0-C38D2E?style=flat-square)](LICENSING.md)
 
 A multi-asset forecasting study testing whether strong pooled Transformer
 performance reflects genuine temporal skill or persistent cross-sectional
 structure.
 
 Controlled simulation confirms that the project's diagnostic framework separates
-static prevalence heterogeneity from deliberately planted ordered temporal signal.
+static prevalence heterogeneity from a deliberately planted ordered signal.
 This is a forecasting and model-evaluation study, not a trading system or a claim
 of profitability.
 
@@ -56,7 +56,7 @@ registered controlled simulation.*
 - [Reproducibility](#reproducibility)
 - [Platform status](#platform-status)
 - [Repository structure](#repository-structure)
-- [Data access](#data-access)
+- [Data access and reconstruction](#data-access-and-reconstruction)
 - [Broader experimental programme](#broader-experimental-programme)
 - [Scope and limitations](#scope-and-limitations)
 - [Dissertation artefacts](#dissertation-artefacts)
@@ -239,7 +239,7 @@ validation-selected probabilities; the two score types are not mixed.
 Two stylised worlds test the diagnostic mechanism under known data-generating
 conditions:
 
-- **World A:** asset-level event-rate heterogeneity with no planted ordered
+- **World A:** asset-level event-rate heterogeneity with no planted temporal
   temporal signal. The static-prior pooled AUC increased by 0.400021 while
   within-asset AUC remained 0.500086.
 - **World B:** no prior heterogeneity and deliberately planted ordered signal. At
@@ -254,7 +254,7 @@ flowchart LR
     D --> F["Chronology attacks<br/>reduce AUC"]
 ```
 
-![Two-panel controlled simulation showing static-prior inflation without temporal signal and recovered order sensitivity with planted dynamic signal](assets/readme/controlled_simulation.svg)
+![Two-panel controlled simulation showing static-prior inflation without temporal signal and recovered order sensitivity with a planted ordered signal](assets/readme/controlled_simulation.svg)
 
 All **1,040** registered runs completed. The simulation validates expected
 diagnostic behaviour under controlled mechanisms. It is not external market
@@ -370,29 +370,64 @@ src/market_dynamics/       Data, modelling, evaluation and reporting package
 tests/                     Leakage, metric, model and reproducibility tests
 .github/workflows/         Public CI validation
 CITATION.cff               Repository citation metadata
-LICENSE* / LICENSING.md    Scoped software, documentation and exclusion terms
+LICENSE / LICENSING.md     Scoped software, documentation and exclusion terms
 ```
 
-## Data access
+## Data access and reconstruction
 
-Yahoo Finance supplied daily OHLCV data and FRED supplied macro/context series.
-Raw provider files are not redistributed. Reconstruction code and compact quality
-manifests are public, but provider availability, terms, symbol histories and
-revisions can change.
+Yahoo Finance supplied the historical daily OHLCV panel and FRED supplied seven
+macro/context series. Raw provider files are not redistributed. Public
+accessibility does not itself grant rights to download, cache, reuse or
+redistribute provider content. Researchers are responsible for checking current
+provider and original-source terms before acquiring data.
 
-The exact configured symbols are recorded in the
-[`daily universe`](configs/universes/daily_global_universe.csv) and
-[`crypto-hourly universe`](configs/universes/crypto_hourly_universe.csv). Public
-quality and inclusion records are available in
-[`data/manifests/`](data/manifests/). The FRED panel is conservatively lagged but
-uses current-vintage downloads rather than a complete point-in-time ALFRED
-reconstruction.
+The exact 80-instrument Yahoo symbol universe is recorded in the
+[`source_symbol_yahoo` column](configs/universes/daily_global_universe.csv). The
+separate [`crypto-hourly universe`](configs/universes/crypto_hourly_universe.csv),
+public [`quality and inclusion manifests`](data/manifests/) and the seven FRED IDs
+in [`phase2b_large_scale_config.yaml`](configs/phase2b_large_scale_config.yaml)
+record the remaining source identifiers. The historical acquisition path is
+documented by [`build_daily_global_panel.py`](scripts/build_daily_global_panel.py),
+the [`panel builder`](src/market_dynamics/data/panel_builders.py), the
+[`Yahoo provider`](src/market_dynamics/data/providers/yfinance_provider.py) and the
+[`FRED provider`](src/market_dynamics/data/providers/fred_provider.py).
+
+| FRED ID | Current series label and source note | Reconstruction caution |
+|---|---|---|
+| [`DFF`](https://fred.stlouisfed.org/series/DFF) | Public Domain: Citation Requested; Federal Reserve Board | Prefer the original Federal Reserve source where its current terms permit. |
+| [`DGS2`](https://fred.stlouisfed.org/series/DGS2) | Public Domain: Citation Requested; Federal Reserve Board | Prefer the original Federal Reserve or Treasury source where permitted. |
+| [`DGS10`](https://fred.stlouisfed.org/series/DGS10) | Public Domain: Citation Requested; Federal Reserve Board | Prefer the original Federal Reserve or Treasury source where permitted. |
+| [`T10Y2Y`](https://fred.stlouisfed.org/series/T10Y2Y) | Copyrighted: Citation Required; calculated by the St. Louis Fed | An equivalent spread may be reconstructed from separately licensed 10-year and 2-year source series. |
+| [`VIXCLS`](https://fred.stlouisfed.org/series/VIXCLS) | Copyrighted: Citation Required; Cboe | Review Cboe permissions and attribution before use. |
+| [`BAMLH0A0HYM2`](https://fred.stlouisfed.org/series/BAMLH0A0HYM2) | Copyrighted: Pre-Approval Required; ICE Data Indices | ICE notes require prior approval for reproduction and now limit FRED history to three years. |
+| [`DTWEXBGS`](https://fred.stlouisfed.org/series/DTWEXBGS) | Public Domain: Citation Requested; Federal Reserve Board | Prefer the original Federal Reserve source where its current terms permit. |
+
+> **Current provider-terms notice (reviewed 18 August 2026):** the current
+> [FRED Services and API terms](https://fred.stlouisfed.org/legal/terms/)
+> expressly restrict using FRED content or the API for machine-learning
+> development or training and also restrict storing, caching and archiving FRED
+> content. Yahoo's current
+> [general terms](https://legal.yahoo.com/us/en/yahoo/terms/otos/index.html)
+> restrict automated collection without prior permission, and `yfinance` is an
+> unofficial client. The repository therefore documents the historical workflow
+> and identifiers but does not represent that current provider terms permit a
+> fresh automated reconstruction. Review the live terms and seek permission or
+> use an authorised original source where appropriate. This is a provider-terms
+> warning, not a legal conclusion or a retrospective determination about the
+> frozen study.
+
+The FRED panel used current-vintage downloads with a conservative availability
+lag rather than a complete point-in-time ALFRED reconstruction. Provider
+availability, terms, identifiers and historical coverage can change. In
+particular, `BAMLH0A0HYM2` no longer offers the original historical depth through
+FRED. This product uses the FRED® API but is not endorsed or certified by the
+Federal Reserve Bank of St. Louis.
 
 > [!NOTE]
 > Raw market/provider data, private predictions and model checkpoints are not
-> redistributed. Public reconstruction therefore relies on acquisition code,
-> manifests, configurations and compact frozen evidence, subject to provider
-> availability and terms.
+> redistributed. Public reconstruction is limited to identifiers, acquisition
+> code, manifests, configurations and compact frozen evidence. Any fresh data
+> acquisition remains subject to current source terms and permissions.
 
 ---
 
@@ -472,12 +507,12 @@ not redistributed.
 
 | Dissertation artefact | Repository source / generator | Frozen evidence / output |
 |---|---|---|
-| Figure 1 — forecast design and chronological evaluation | [`build_dissertation_paper.py`](scripts/build_dissertation_paper.py) | [`phase6_config.yaml`](configs/phase6_config.yaml); [`authoritative specification`](reports/tables/ifddrp_transformer_authoritative_specification.md) |
-| Figure 2 — pooled versus within-asset ROC-AUC | [`build_dissertation_paper.py`](scripts/build_dissertation_paper.py) | [`metric registry`](reports/tables/ifddrp_authoritative_metric_registry.csv); [`identity/dynamics decomposition`](reports/tables/ifddrp_identity_dynamic_information_decomposition.csv) |
-| Table 3 and Figure A1 — cross-model ranking | [V4 development source](reports/paper/draft_dissertation_paper_v4.md); [`build_dissertation_paper.py`](scripts/build_dissertation_paper.py) | [`cross-model results`](reports/tables/prp1_fixed_cross_model_results.csv); [`temporal-skill gates`](reports/tables/prp1_fixed_cross_model_temporal_skill_gates.csv) |
-| Figure 3 — controlled simulation | [`build_dissertation_paper.py`](scripts/build_dissertation_paper.py) | [`simulation results`](reports/tables/prp1_study_a_independent_simulation_results.csv); [`gate inference`](reports/tables/prp1_study_a_independent_simulation_gate_inference.csv) |
-| Figure A2 — identity and order diagnostics | [`build_dissertation_paper.py`](scripts/build_dissertation_paper.py) | [`identity swap`](reports/tables/phase6_identity_swap_results.csv); [`temporal order`](reports/tables/phase6_temporal_order_destruction.csv) |
-| Figures A3/A4 — prevalence diagnostics | [`build_dissertation_paper.py`](scripts/build_dissertation_paper.py) | [`model-window endpoint labels`](src/market_dynamics/reporting/data/final_model_window_prevalence.csv) |
+| Figure 1: forecast design and chronological evaluation | [`build_dissertation_paper.py`](scripts/build_dissertation_paper.py) | [`phase6_config.yaml`](configs/phase6_config.yaml); [`authoritative specification`](reports/tables/ifddrp_transformer_authoritative_specification.md) |
+| Figure 2: pooled versus within-asset ROC-AUC | [`build_dissertation_paper.py`](scripts/build_dissertation_paper.py) | [`metric registry`](reports/tables/ifddrp_authoritative_metric_registry.csv); [`identity/dynamics decomposition`](reports/tables/ifddrp_identity_dynamic_information_decomposition.csv) |
+| Table 3 and Figure A1: cross-model ranking | [V4 development source](reports/paper/draft_dissertation_paper_v4.md); [`build_dissertation_paper.py`](scripts/build_dissertation_paper.py) | [`cross-model results`](reports/tables/prp1_fixed_cross_model_results.csv); [`temporal-skill gates`](reports/tables/prp1_fixed_cross_model_temporal_skill_gates.csv) |
+| Figure 3: controlled simulation | [`build_dissertation_paper.py`](scripts/build_dissertation_paper.py) | [`simulation results`](reports/tables/prp1_study_a_independent_simulation_results.csv); [`gate inference`](reports/tables/prp1_study_a_independent_simulation_gate_inference.csv) |
+| Figure A2: identity and order diagnostics | [`build_dissertation_paper.py`](scripts/build_dissertation_paper.py) | [`identity swap`](reports/tables/phase6_identity_swap_results.csv); [`temporal order`](reports/tables/phase6_temporal_order_destruction.csv) |
+| Figures A3/A4: prevalence diagnostics | [`build_dissertation_paper.py`](scripts/build_dissertation_paper.py) | [`model-window endpoint labels`](src/market_dynamics/reporting/data/final_model_window_prevalence.csv) |
 
 ## Project status
 
@@ -493,7 +528,7 @@ Citation metadata are provided in [`CITATION.cff`](CITATION.cff).
 
 > Muhammad Husaam Ateeq (2026). *Interpretable Transformer Models for Financial
 > Time Series Forecasting: Discovering Emergent Market Dynamics*. MSc Data Science
-> dissertation, Queen Mary University of London.
+> and Artificial Intelligence dissertation, Queen Mary University of London.
 
 `CITATION.cff` is prepared for software version 1.0.0 without a fabricated
 release date. No DOI or publication status is claimed.
@@ -502,7 +537,8 @@ release date. No DOI or publication status is claimed.
 
 Project software is licensed under the [BSD 3-Clause License](LICENSE). Original
 repository documentation and generated README figures are licensed under
-[CC BY 4.0](LICENSE-DOCS.md) within the scope stated there.
+[CC BY 4.0](LICENSING.md#documentation-and-generated-figures) within the scope
+stated there.
 
 The submitted dissertation PDF, provider data, third-party content, trademarks,
 and separately attributed material are excluded from those grants unless their

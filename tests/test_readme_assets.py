@@ -19,7 +19,7 @@ TABLES = ROOT / "reports" / "tables"
 ASSETS = ROOT / "assets" / "readme"
 README = ROOT / "README.md"
 FINAL_DISSERTATION = ROOT / "reports" / "paper" / "Husaam_Ateeq_Dissertation_Final.pdf"
-FINAL_DISSERTATION_SHA256 = "53cca793e3804049e122a9b701cf22461afd2386f147e93102b463d5898f79ff"
+FINAL_DISSERTATION_SHA256 = "2e86ab8390316983097dd853b537175e469d956e24f00c6e3d78864912b4cd7c"
 EXPECTED_ASSETS = (
     "graphical_abstract.svg",
     "graphical_abstract.png",
@@ -60,7 +60,7 @@ EXPECTED_CONTENTS_LINKS = (
     ("Reproducibility", "#reproducibility"),
     ("Platform status", "#platform-status"),
     ("Repository structure", "#repository-structure"),
-    ("Data access", "#data-access"),
+    ("Data access and reconstruction", "#data-access-and-reconstruction"),
     ("Broader experimental programme", "#broader-experimental-programme"),
     ("Scope and limitations", "#scope-and-limitations"),
     ("Dissertation artefacts", "#dissertation-artefacts"),
@@ -116,7 +116,7 @@ def test_readme_asset_generation_is_deterministic_and_has_expected_dimensions(
     assert tuple(path.name for path in first) == EXPECTED_ASSETS
     assert tuple(path.name for path in second) == EXPECTED_ASSETS
     assert [_sha256(path) for path in first] == [_sha256(path) for path in second]
-    assert _png_dimensions(first[1]) == (1_800, 840)
+    assert _png_dimensions(first[1]) == (1_536, 1_032)
     assert _png_dimensions(first[4]) == (1_280, 640)
     assert first[4].stat().st_size < 1_000_000
 
@@ -141,6 +141,9 @@ def test_readme_retains_generated_research_graphics_and_social_preview() -> None
         assert f"(assets/readme/{name})" in text
     assert (ASSETS / "graphical_abstract.png").is_file()
     assert (ASSETS / "social_preview.png").is_file()
+    assert "Static heterogeneity vs planted ordered signal" in (
+        ASSETS / "graphical_abstract.svg"
+    ).read_text(encoding="utf-8")
 
 
 def test_readme_navigation_and_contents_match_current_sections() -> None:
@@ -183,6 +186,16 @@ def test_readme_uses_exactly_the_requested_callout_hierarchy() -> None:
     assert text.count("> [!NOTE]") == 2
     assert "> [!WARNING]" not in text
     assert "> [!CAUTION]" not in text
+
+
+def test_readme_contains_no_em_dashes() -> None:
+    text = README.read_text(encoding="utf-8")
+    generator = (ROOT / "src" / "market_dynamics" / "reporting" / "readme_assets.py").read_text(
+        encoding="utf-8"
+    )
+
+    assert "\u2014" not in text
+    assert "\u2014" not in generator
 
 
 def test_readme_uses_correct_main_and_secondary_study_framing() -> None:
@@ -251,6 +264,17 @@ def test_citation_metadata_is_prepared_for_release_without_fabricated_date() -> 
     )
     assert "doi" not in citation
     assert "orcid" not in citation["authors"][0]
+    assert citation["preferred-citation"] == {
+        "type": "thesis",
+        "authors": [{"family-names": "Ateeq", "given-names": "Muhammad Husaam"}],
+        "title": (
+            "Interpretable Transformer Models for Financial Time Series Forecasting: "
+            "Discovering Emergent Market Dynamics"
+        ),
+        "year": 2026,
+        "thesis-type": "MSc dissertation",
+        "institution": {"name": "Queen Mary University of London"},
+    }
 
 
 def test_final_dissertation_and_scoped_licensing_are_publicly_linked() -> None:
@@ -263,18 +287,39 @@ def test_final_dissertation_and_scoped_licensing_are_publicly_linked() -> None:
     assert "[Final dissertation PDF](reports/paper/Husaam_Ateeq_Dissertation_Final.pdf)" in text
 
     software_licence = (ROOT / "LICENSE").read_text(encoding="utf-8")
-    docs_licence = (ROOT / "LICENSE-DOCS.md").read_text(encoding="utf-8")
     scope = (ROOT / "LICENSING.md").read_text(encoding="utf-8")
     assert software_licence.startswith("BSD 3-Clause License")
     assert "Copyright (c) 2026, Muhammad Husaam Ateeq" in software_licence
     assert "Creative Commons Attribution 4.0 International" in " ".join(
-        docs_licence.split()
+        scope.split()
     )
+    assert not (ROOT / "LICENSE-DOCS.md").exists()
     normalized_scope = " ".join(scope.split())
     assert "submitted dissertation" in normalized_scope
     assert "provider-derived data" in normalized_scope
     assert "[BSD 3-Clause License](LICENSE)" in text
-    assert "[CC BY 4.0](LICENSE-DOCS.md)" in text
+    assert "[CC BY 4.0](LICENSING.md#documentation-and-generated-figures)" in text
+
+
+def test_data_access_documents_exact_identifiers_and_current_terms_boundary() -> None:
+    text = README.read_text(encoding="utf-8")
+
+    assert "## Data access and reconstruction" in text
+    for series_id in (
+        "DFF",
+        "DGS2",
+        "DGS10",
+        "T10Y2Y",
+        "VIXCLS",
+        "BAMLH0A0HYM2",
+        "DTWEXBGS",
+    ):
+        assert f"https://fred.stlouisfed.org/series/{series_id}" in text
+    assert "https://fred.stlouisfed.org/legal/terms/" in text
+    assert "https://legal.yahoo.com/us/en/yahoo/terms/otos/index.html" in text
+    assert "does not represent that current provider terms permit" in text
+    assert "Raw market/provider data" in text
+    assert "source_symbol_yahoo" in text
 
 
 def test_readme_platform_claims_match_public_execution_paths() -> None:

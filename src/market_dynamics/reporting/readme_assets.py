@@ -35,7 +35,6 @@ PALE_RED = "#F8ECEB"
 WHITE = "#FFFFFF"
 NAVY = "#071C26"
 DARK_PANEL = "#102D38"
-DARK_PANEL_ALT = "#163743"
 LIGHT_INK = "#F4F8F9"
 LIGHT_MID = "#ABC0C7"
 BRIGHT_TEAL = "#43B7C3"
@@ -165,12 +164,12 @@ def build_readme_assets(output_dir: Path, tables_dir: Path) -> tuple[Path, ...]:
     _make_graphical_abstract(outputs[0], outputs[1], evidence)
     _make_headline_results(outputs[2], evidence)
     _make_controlled_simulation(outputs[3], simulation)
-    _make_social_preview(outputs[4], evidence)
+    _make_social_preview(outputs[4])
     return outputs
 
 
 def _make_graphical_abstract(svg_path: Path, png_path: Path, evidence: ReadmeEvidence) -> None:
-    fig, ax = plt.subplots(figsize=(15, 7), dpi=120)
+    fig, ax = plt.subplots(figsize=(12.8, 8.6), dpi=120)
     fig.patch.set_facecolor(NAVY)
     ax.set_facecolor(NAVY)
     ax.set_xlim(0, 1)
@@ -178,19 +177,19 @@ def _make_graphical_abstract(svg_path: Path, png_path: Path, evidence: ReadmeEvi
     ax.axis("off")
 
     ax.text(
-        0.035,
-        0.96,
+        0.04,
+        0.965,
         "When does pooled forecasting measure temporal skill?",
-        fontsize=24,
+        fontsize=25,
         fontweight="bold",
         color=LIGHT_INK,
         va="top",
     )
     ax.text(
-        0.035,
-        0.905,
-        "One apparent result, three adversarial checks, and a controlled mechanism test",
-        fontsize=11.5,
+        0.04,
+        0.915,
+        "One apparent result, three adversarial checks, one controlled mechanism test",
+        fontsize=12.8,
         color=LIGHT_MID,
         va="top",
     )
@@ -198,51 +197,52 @@ def _make_graphical_abstract(svg_path: Path, png_path: Path, evidence: ReadmeEvi
     _dark_box(
         ax,
         0.035,
-        0.68,
-        0.25,
-        0.16,
+        0.72,
+        0.27,
+        0.15,
         "MULTI-ASSET INPUT",
         (
-            f"{MODEL_WINDOW_ASSET_COUNT} evaluated instruments / 6 families",
-            f"{METHODOLOGY_FIGURE_DATA.lookback} sessions x "
-            f"{METHODOLOGY_FIGURE_DATA.numerical_channels} channels + asset identity",
+            f"{MODEL_WINDOW_ASSET_COUNT} instruments / 6 families",
+            f"{METHODOLOGY_FIGURE_DATA.lookback} sessions / "
+            f"{METHODOLOGY_FIGURE_DATA.numerical_channels} channels",
+            "+ learned asset identity",
         ),
         accent=BRIGHT_TEAL,
     )
     _dark_box(
         ax,
-        0.375,
-        0.68,
-        0.25,
-        0.16,
+        0.365,
+        0.72,
+        0.27,
+        0.15,
         "TRANSFORMER",
         (
-            f"{METHODOLOGY_FIGURE_DATA.encoder_layers}-layer encoder + attention pooling",
-            f"{METHODOLOGY_FIGURE_DATA.parameters:,} trainable parameters",
+            f"{METHODOLOGY_FIGURE_DATA.encoder_layers}-layer encoder",
+            f"{METHODOLOGY_FIGURE_DATA.parameters:,} parameters",
         ),
         accent=BRIGHT_BLUE,
     )
     _dark_box(
         ax,
-        0.715,
-        0.68,
-        0.25,
-        0.16,
-        "POOLED RESULT LOOKS STRONG",
+        0.695,
+        0.72,
+        0.27,
+        0.15,
+        "POOLED RESULT",
         (
             f"ROC-AUC  {evidence.transformer_pooled_auc:.3f}",
             f"PR-AUC  {evidence.transformer_pr_auc:.3f}",
         ),
         accent=BRIGHT_RED,
     )
-    _dark_arrow(ax, (0.288, 0.76), (0.37, 0.76))
-    _dark_arrow(ax, (0.628, 0.76), (0.71, 0.76))
+    _dark_arrow(ax, (0.308, 0.795), (0.36, 0.795))
+    _dark_arrow(ax, (0.638, 0.795), (0.69, 0.795))
 
     ax.text(
         0.035,
-        0.615,
+        0.655,
         "CHALLENGE / DIAGNOSE",
-        fontsize=10.5,
+        fontsize=11.8,
         fontweight="bold",
         color=LIGHT_MID,
         va="center",
@@ -250,79 +250,79 @@ def _make_graphical_abstract(svg_path: Path, png_path: Path, evidence: ReadmeEvi
     _dark_box(
         ax,
         0.035,
-        0.39,
+        0.43,
         0.28,
         0.16,
         "STATIC PRIOR",
         (
             f"Pooled AUC  {evidence.static_asset_prior_auc:.3f}",
-            "Constant through time within each asset",
+            "Constant through time",
         ),
         accent=BRIGHT_GOLD,
     )
     _dark_box(
         ax,
         0.36,
-        0.39,
+        0.43,
         0.28,
         0.16,
         "WITHIN-ASSET TEST",
         (
             f"Transformer AUC  {evidence.transformer_within_auc:.3f}",
-            "Approximately chance within instruments",
+            "Approximately chance",
         ),
         accent=BRIGHT_TEAL,
     )
     _dark_box(
         ax,
         0.685,
-        0.39,
+        0.43,
         0.28,
         0.16,
-        "IDENTITY + ORDER TESTS",
+        "IDENTITY + ORDER",
         (
             f"No-ID pooled AUC  {evidence.no_asset_id_auc:.3f}",
             f"Largest order change  {evidence.maximum_order_auc_change:.4f}",
         ),
         accent=BRIGHT_RED,
     )
-    ax.plot((0.84, 0.84), (0.675, 0.59), color=BRIGHT_RED, linewidth=1.35)
-    ax.plot((0.175, 0.84), (0.59, 0.59), color=BRIGHT_RED, linewidth=1.35)
+    ax.plot((0.83, 0.83), (0.715, 0.63), color=BRIGHT_RED, linewidth=1.5)
+    ax.plot((0.175, 0.83), (0.63, 0.63), color=BRIGHT_RED, linewidth=1.5)
     for target_x in (0.175, 0.5, 0.825):
-        _dark_arrow(ax, (target_x, 0.59), (target_x, 0.555), colour=BRIGHT_RED)
+        _dark_arrow(ax, (target_x, 0.63), (target_x, 0.595), colour=BRIGHT_RED)
 
-    ax.plot((0.175, 0.825), (0.335, 0.335), color=LIGHT_MID, linewidth=1.2, alpha=0.8)
+    ax.plot((0.175, 0.825), (0.365, 0.365), color=LIGHT_MID, linewidth=1.35, alpha=0.9)
     for source_x in (0.175, 0.5, 0.825):
-        ax.plot((source_x, source_x), (0.39, 0.335), color=LIGHT_MID, linewidth=1.2, alpha=0.8)
+        _dark_arrow(ax, (source_x, 0.43), (source_x, 0.372), colour=LIGHT_MID)
 
     _dark_box(
         ax,
-        0.11,
-        0.09,
-        0.37,
-        0.16,
+        0.19,
+        0.20,
+        0.62,
+        0.115,
         "CONTROLLED SIMULATION",
         (
             f"{evidence.simulation_runs:,} registered runs",
-            "Static heterogeneity versus planted order",
+            "Static heterogeneity vs planted ordered signal",
         ),
         accent=BRIGHT_BLUE,
     )
     _dark_box(
         ax,
-        0.57,
-        0.09,
-        0.395,
-        0.16,
-        "DIAGNOSTIC CONCLUSION",
+        0.14,
+        0.045,
+        0.72,
+        0.12,
+        "CONCLUSION",
         (
             "Strong pooled discrimination did not establish",
-            "robust temporal forecasting skill.",
+            "robust temporal forecasting skill",
         ),
         accent=LIGHT_INK,
     )
-    _dark_arrow(ax, (0.5, 0.33), (0.295, 0.255), colour=BRIGHT_BLUE)
-    _dark_arrow(ax, (0.485, 0.17), (0.565, 0.17), colour=BRIGHT_BLUE)
+    _dark_arrow(ax, (0.5, 0.36), (0.5, 0.32), colour=BRIGHT_BLUE)
+    _dark_arrow(ax, (0.5, 0.195), (0.5, 0.155), colour=BRIGHT_BLUE)
 
     fig.subplots_adjust(left=0, right=1, top=1, bottom=0)
     _save_svg(fig, svg_path, "Graphical abstract of the shortcut-learning diagnostic")
@@ -498,7 +498,7 @@ def _make_controlled_simulation(path: Path, simulation) -> None:
     plt.close(fig)
 
 
-def _make_social_preview(path: Path, evidence: ReadmeEvidence) -> None:
+def _make_social_preview(path: Path) -> None:
     fig, ax = plt.subplots(figsize=(12.8, 6.4), dpi=100)
     fig.patch.set_facecolor(NAVY)
     ax.set_facecolor(NAVY)
@@ -506,91 +506,73 @@ def _make_social_preview(path: Path, evidence: ReadmeEvidence) -> None:
     ax.set_ylim(0, 1)
     ax.axis("off")
 
-    signal_x = np.linspace(0, 1, 500)
-    for offset, colour in ((0.06, BRIGHT_TEAL), (0.14, BRIGHT_BLUE), (0.22, BRIGHT_GOLD)):
-        signal_y = 0.78 + 0.025 * np.sin(18 * signal_x + offset * 18)
-        signal_y += 0.012 * np.sin(47 * signal_x + offset * 9)
-        ax.plot(signal_x, signal_y, color=colour, alpha=0.10, linewidth=1.2)
+    signal_x = np.linspace(0.62, 0.98, 500)
+    local_x = (signal_x - signal_x.min()) / np.ptp(signal_x)
+    signal_specs = (
+        (0.30, 0.035, BRIGHT_TEAL, 1.8),
+        (0.43, 0.055, BRIGHT_BLUE, 2.1),
+        (0.57, 0.075, BRIGHT_GOLD, 2.4),
+        (0.70, 0.045, BRIGHT_TEAL, 1.8),
+    )
+    for baseline, amplitude, colour, linewidth in signal_specs:
+        signal_y = baseline + amplitude * np.sin(11 * local_x + baseline * 7)
+        signal_y += 0.018 * np.sin(31 * local_x + baseline * 5)
+        ax.plot(signal_x, signal_y, color=colour, alpha=0.62, linewidth=linewidth)
+
+    for x in np.linspace(0.65, 0.96, 9):
+        ax.plot((x, x), (0.20, 0.80), color=LIGHT_MID, alpha=0.07, linewidth=0.9)
+    for x, y, colour in (
+        (0.69, 0.39, BRIGHT_TEAL),
+        (0.77, 0.59, BRIGHT_GOLD),
+        (0.86, 0.48, BRIGHT_BLUE),
+        (0.94, 0.69, BRIGHT_TEAL),
+    ):
+        ax.scatter((x,), (y,), s=72, facecolor=NAVY, edgecolor=colour, linewidth=1.8, zorder=5)
 
     ax.add_patch(FancyBboxPatch((0.0, 0.0), 0.018, 1.0, boxstyle="square,pad=0", facecolor=BRIGHT_TEAL, edgecolor="none"))
     ax.text(
         0.055,
-        0.88,
-        "INTERPRETABLE TRANSFORMER MODELS",
-        fontsize=13,
+        0.84,
+        "Interpretable Transformer Models\nfor Financial Time Series Forecasting",
+        fontsize=25,
+        fontweight="bold",
+        color=LIGHT_INK,
+        va="top",
+        linespacing=1.15,
+    )
+    ax.text(
+        0.055,
+        0.59,
+        "Discovering Emergent Market Dynamics",
+        fontsize=16.5,
         fontweight="bold",
         color=BRIGHT_TEAL,
         va="top",
     )
     ax.text(
         0.055,
-        0.80,
-        "Financial time series forecasting\nunder adversarial evaluation",
-        fontsize=26,
-        fontweight="bold",
-        color=LIGHT_INK,
-        va="top",
-        linespacing=1.1,
-    )
-    ax.text(
-        0.055,
-        0.58,
+        0.34,
         "Muhammad Husaam Ateeq CA",
-        fontsize=12.5,
-        fontweight="bold",
-        color=LIGHT_MID,
-        va="top",
-    )
-    ax.text(0.055, 0.525, "MSc Data Science and Artificial Intelligence", fontsize=10.5, color=LIGHT_MID, va="top")
-
-    metric_rows = (
-        ("Transformer pooled AUC", evidence.transformer_pooled_auc, BRIGHT_BLUE),
-        ("Static asset prior", evidence.static_asset_prior_auc, BRIGHT_GOLD),
-        ("Within-asset AUC", evidence.transformer_within_auc, BRIGHT_TEAL),
-    )
-    for index, (label, value, colour) in enumerate(metric_rows):
-        y = 0.71 - index * 0.18
-        ax.add_patch(
-            FancyBboxPatch(
-                (0.61, y - 0.045),
-                0.335,
-                0.13,
-                boxstyle="round,pad=0.012,rounding_size=0.018",
-                facecolor=DARK_PANEL_ALT,
-                edgecolor=colour,
-                linewidth=1.4,
-            )
-        )
-        ax.text(0.635, y + 0.042, label, fontsize=10.5, color=LIGHT_MID, va="center")
-        ax.text(0.92, y + 0.008, f"{value:.3f}", fontsize=23, fontweight="bold", color=colour, ha="right", va="center")
-
-    ax.add_patch(
-        FancyBboxPatch(
-            (0.05, 0.105),
-            0.895,
-            0.15,
-            boxstyle="round,pad=0.012,rounding_size=0.015",
-            facecolor=DARK_PANEL,
-            edgecolor=BRIGHT_RED,
-            linewidth=1.5,
-        )
-    )
-    ax.text(
-        0.497,
-        0.18,
-        "Strong pooled performance does not imply robust temporal skill",
-        fontsize=16,
+        fontsize=15,
         fontweight="bold",
         color=LIGHT_INK,
-        ha="center",
-        va="center",
+        va="top",
     )
     ax.text(
         0.055,
-        0.045,
-        "Static priors | within-asset evaluation | identity interventions | chronology perturbations | 1,040 simulations",
-        fontsize=9.2,
+        0.255,
+        "MSc Data Science and Artificial Intelligence",
+        fontsize=12.5,
         color=LIGHT_MID,
+        va="top",
+    )
+    ax.text(
+        0.055,
+        0.205,
+        "Queen Mary University of London",
+        fontsize=12.5,
+        color=LIGHT_MID,
+        va="top",
     )
     fig.subplots_adjust(left=0, right=1, top=1, bottom=0)
     _save_png(fig, path, "Repository social preview", dpi=100)
@@ -631,20 +613,20 @@ def _dark_box(
     )
     ax.text(
         x + 0.03,
-        y + height - 0.037,
+        y + height - 0.028,
         title,
-        fontsize=9.2,
+        fontsize=11.4,
         fontweight="bold",
         color=accent,
         va="top",
     )
-    line_y = y + height - 0.081
+    line_y = y + height - 0.067
     for index, line in enumerate(lines):
         ax.text(
             x + 0.03,
-            line_y - index * 0.035,
+            line_y - index * 0.031,
             line,
-            fontsize=8.5,
+            fontsize=10.4,
             color=LIGHT_INK,
             va="top",
         )
