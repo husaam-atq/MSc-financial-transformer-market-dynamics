@@ -19,7 +19,7 @@ TABLES = ROOT / "reports" / "tables"
 ASSETS = ROOT / "assets" / "readme"
 README = ROOT / "README.md"
 FINAL_DISSERTATION = ROOT / "reports" / "paper" / "Husaam_Ateeq_Dissertation_Final.pdf"
-FINAL_DISSERTATION_SHA256 = "2e86ab8390316983097dd853b537175e469d956e24f00c6e3d78864912b4cd7c"
+FINAL_DISSERTATION_SHA256 = "bbc10de84e2d9388658ccc643050589bf09ae21bc6ea26247e24473220ab0800"
 EXPECTED_ASSETS = (
     "graphical_abstract.svg",
     "graphical_abstract.png",
