@@ -18,6 +18,8 @@ ROOT = Path(__file__).resolve().parents[1]
 TABLES = ROOT / "reports" / "tables"
 ASSETS = ROOT / "assets" / "readme"
 README = ROOT / "README.md"
+FINAL_DISSERTATION = ROOT / "reports" / "paper" / "Husaam_Ateeq_Dissertation_Final.pdf"
+FINAL_DISSERTATION_SHA256 = "2e86ab8390316983097dd853b537175e469d956e24f00c6e3d78864912b4cd7c"
 EXPECTED_ASSETS = (
     "graphical_abstract.svg",
     "graphical_abstract.png",
@@ -29,7 +31,7 @@ EXPECTED_CHOOSE_PATH_LINKS = (
     ("Examiner: key findings and methodology", "#key-finding"),
     ("Researcher: diagnostics and simulation", "#diagnostic-framework"),
     ("Developer: reproducibility and setup", "#reproducibility"),
-    ("Dissertation: current artefacts", "#dissertation-artefacts"),
+    ("Dissertation: final PDF", "reports/paper/Husaam_Ateeq_Dissertation_Final.pdf"),
 )
 EXPECTED_KEY_LINKS = (
     ("Headline results", "#key-finding"),
@@ -40,6 +42,7 @@ EXPECTED_KEY_LINKS = (
     ("Repository structure", "#repository-structure"),
     ("Broader experimental programme", "#broader-experimental-programme"),
     ("Dissertation artefacts", "#dissertation-artefacts"),
+    ("Dissertation map", "#dissertation--repository-map"),
     (
         "Frozen release",
         "https://github.com/husaam-atq/"
@@ -55,11 +58,13 @@ EXPECTED_CONTENTS_LINKS = (
     ("Diagnostic framework", "#diagnostic-framework"),
     ("Controlled simulation", "#controlled-simulation"),
     ("Reproducibility", "#reproducibility"),
+    ("Platform status", "#platform-status"),
     ("Repository structure", "#repository-structure"),
-    ("Data access", "#data-access"),
+    ("Data access and reconstruction", "#data-access-and-reconstruction"),
     ("Broader experimental programme", "#broader-experimental-programme"),
     ("Scope and limitations", "#scope-and-limitations"),
     ("Dissertation artefacts", "#dissertation-artefacts"),
+    ("Dissertation ↔ repository map", "#dissertation--repository-map"),
     ("Project status", "#project-status"),
     ("Citation", "#citation"),
     ("Licence", "#licence"),
@@ -111,8 +116,9 @@ def test_readme_asset_generation_is_deterministic_and_has_expected_dimensions(
     assert tuple(path.name for path in first) == EXPECTED_ASSETS
     assert tuple(path.name for path in second) == EXPECTED_ASSETS
     assert [_sha256(path) for path in first] == [_sha256(path) for path in second]
-    assert _png_dimensions(first[1]) == (1_800, 840)
+    assert _png_dimensions(first[1]) == (1_536, 1_032)
     assert _png_dimensions(first[4]) == (1_280, 640)
+    assert first[4].stat().st_size < 1_000_000
 
 
 def test_tracked_readme_assets_exist_without_local_path_metadata() -> None:
@@ -126,6 +132,12 @@ def test_tracked_readme_assets_exist_without_local_path_metadata() -> None:
 
 def test_readme_retains_generated_research_graphics_and_social_preview() -> None:
     text = README.read_text(encoding="utf-8")
+    generator = (
+        ROOT / "src" / "market_dynamics" / "reporting" / "readme_assets.py"
+    ).read_text(encoding="utf-8")
+    social_preview_source = generator.split("def _make_social_preview", maxsplit=1)[1].split(
+        "def _dark_box", maxsplit=1
+    )[0]
 
     for name in (
         "graphical_abstract.svg",
@@ -135,6 +147,13 @@ def test_readme_retains_generated_research_graphics_and_social_preview() -> None
         assert f"(assets/readme/{name})" in text
     assert (ASSETS / "graphical_abstract.png").is_file()
     assert (ASSETS / "social_preview.png").is_file()
+    assert "Static heterogeneity vs planted ordered signal" in (
+        ASSETS / "graphical_abstract.svg"
+    ).read_text(encoding="utf-8")
+    assert "np.sin" not in social_preview_source
+    assert "attention_weights" in social_preview_source
+    for forbidden_metric in ("0.790", "0.824", "0.492", "ROC-AUC", "PR-AUC"):
+        assert forbidden_metric not in social_preview_source
 
 
 def test_readme_navigation_and_contents_match_current_sections() -> None:
@@ -161,11 +180,12 @@ def test_readme_has_four_expected_mermaid_flowcharts() -> None:
         "flowchart LR",
         "flowchart LR",
     ]
-    assert "Frozen conclusion" in blocks[0]
-    assert "60 sessions x 34 numerical features" in blocks[1]
-    assert "18-date purge" in blocks[2]
-    assert "World A: static heterogeneity" in blocks[3]
-    assert "World B: planted ordered signal" in blocks[3]
+    assert "Frozen<br/>conclusion" in blocks[0]
+    assert "Transformer within-asset<br/>AUC 0.492" in blocks[0]
+    assert "60 sessions x 34<br/>numerical channels" in blocks[1]
+    assert "18-date<br/>purge" in blocks[2]
+    assert "World A<br/>static heterogeneity" in blocks[3]
+    assert "World B<br/>planted ordered signal" in blocks[3]
 
 
 def test_readme_uses_exactly_the_requested_callout_hierarchy() -> None:
@@ -173,9 +193,19 @@ def test_readme_uses_exactly_the_requested_callout_hierarchy() -> None:
 
     assert text.count("> [!IMPORTANT]") == 1
     assert text.count("> [!TIP]") == 1
-    assert text.count("> [!NOTE]") == 2
+    assert text.count("> [!NOTE]") == 1
     assert "> [!WARNING]" not in text
     assert "> [!CAUTION]" not in text
+
+
+def test_readme_contains_no_em_dashes() -> None:
+    text = README.read_text(encoding="utf-8")
+    generator = (ROOT / "src" / "market_dynamics" / "reporting" / "readme_assets.py").read_text(
+        encoding="utf-8"
+    )
+
+    assert "\u2014" not in text
+    assert "\u2014" not in generator
 
 
 def test_readme_uses_correct_main_and_secondary_study_framing() -> None:
@@ -196,6 +226,13 @@ def test_readme_uses_correct_main_and_secondary_study_framing() -> None:
     assert "20 pairs" in secondary_inline
     assert "0.6015 ± 0.0049" in secondary_inline
     assert "<details>" in secondary
+    expected_note = (
+        "> [!NOTE]\n"
+        "> The approximately 1.52 million observations are the sum of two distinct "
+        "experimental tracks: 306,174 daily observations and 1,213,437 hourly crypto "
+        "observations. They are not one unified dataset or one model-training sample."
+    )
+    assert f"</details>\n\n{expected_note}" in secondary
     assert "1.57 million" not in text
     assert "1.74%" not in text
     assert "46.80%" not in text
@@ -225,16 +262,98 @@ def test_readme_relative_links_and_images_resolve() -> None:
     assert [anchor for anchor in anchors if anchor not in headings] == []
 
 
-def test_citation_metadata_uses_known_author_and_release() -> None:
+def test_citation_metadata_is_prepared_for_release_without_fabricated_date() -> None:
     citation = yaml.safe_load((ROOT / "CITATION.cff").read_text(encoding="utf-8"))
 
     assert citation["cff-version"] == "1.2.0"
+    assert citation["title"] == (
+        "Interpretable Transformer Models for Financial Time Series Forecasting: "
+        "Discovering Emergent Market Dynamics"
+    )
     assert citation["authors"] == [
         {"family-names": "Ateeq", "given-names": "Muhammad Husaam"}
     ]
-    assert citation["version"] == "dissertation-final"
-    assert citation["date-released"] == "2026-08-13"
+    assert citation["version"] == "1.0.0"
+    assert "date-released" not in citation
+    assert citation["license"] == "BSD-3-Clause"
     assert citation["repository-code"] == (
         "https://github.com/husaam-atq/MSc-financial-transformer-market-dynamics"
     )
     assert "doi" not in citation
+    assert "orcid" not in citation["authors"][0]
+    assert citation["preferred-citation"] == {
+        "type": "thesis",
+        "authors": [{"family-names": "Ateeq", "given-names": "Muhammad Husaam"}],
+        "title": (
+            "Interpretable Transformer Models for Financial Time Series Forecasting: "
+            "Discovering Emergent Market Dynamics"
+        ),
+        "year": 2026,
+        "thesis-type": "MSc dissertation",
+        "institution": {"name": "Queen Mary University of London"},
+    }
+
+
+def test_final_dissertation_and_scoped_licensing_are_publicly_linked() -> None:
+    text = README.read_text(encoding="utf-8")
+
+    assert FINAL_DISSERTATION.is_file()
+    assert _sha256(FINAL_DISSERTATION) == FINAL_DISSERTATION_SHA256
+    assert not (ROOT / "reports" / "paper" / "draft_dissertation_paper_v4.pdf").exists()
+    assert "Muhammad Husaam Ateeq CA" in text
+    assert "[Final dissertation PDF](reports/paper/Husaam_Ateeq_Dissertation_Final.pdf)" in text
+
+    software_licence = (ROOT / "LICENSE").read_text(encoding="utf-8")
+    scope = (ROOT / "LICENSING.md").read_text(encoding="utf-8")
+    assert software_licence.startswith("BSD 3-Clause License")
+    assert "Copyright (c) 2026, Muhammad Husaam Ateeq" in software_licence
+    assert "Creative Commons Attribution 4.0 International" in " ".join(
+        scope.split()
+    )
+    assert not (ROOT / "LICENSE-DOCS.md").exists()
+    normalized_scope = " ".join(scope.split())
+    assert "submitted dissertation" in normalized_scope
+    assert "provider-derived data" in normalized_scope
+    assert "[BSD 3-Clause License](LICENSE)" in text
+    assert "[CC BY 4.0](LICENSING.md#documentation-and-generated-figures)" in text
+
+
+def test_data_access_documents_exact_identifiers_and_concise_terms_boundary() -> None:
+    text = README.read_text(encoding="utf-8")
+
+    assert "## Data access and reconstruction" in text
+    assert "### Data access and provider terms" in text
+    assert "### Recorded inputs and reconstruction path" in text
+    for series_id in (
+        "DFF",
+        "DGS2",
+        "DGS10",
+        "T10Y2Y",
+        "VIXCLS",
+        "BAMLH0A0HYM2",
+        "DTWEXBGS",
+    ):
+        assert f"https://fred.stlouisfed.org/series/{series_id}" in text
+    normalized = " ".join(text.split())
+    assert (
+        "Raw market and macroeconomic provider data are not redistributed in this "
+        "repository."
+    ) in normalized
+    assert "Users wishing to reproduce the data should obtain the relevant series" in normalized
+    assert "Provider availability, licensing and terms may change over time." in normalized
+    assert "https://fred.stlouisfed.org/legal/terms/" not in text
+    assert "https://legal.yahoo.com/us/en/yahoo/terms/otos/index.html" not in text
+    assert "Current provider-terms notice" not in text
+    assert "machine-learning restrictions" not in text
+    assert "source_symbol_yahoo" in text
+
+
+def test_readme_platform_claims_match_public_execution_paths() -> None:
+    text = README.read_text(encoding="utf-8")
+
+    assert "#### Windows (PowerShell)" in text
+    assert "#### macOS / Linux (POSIX shell)" in text
+    assert "source .venv/bin/activate" in text
+    assert "| Ubuntu, x86-64, CPU | Verified in CI |" in text
+    assert "| macOS, CPU | Expected but not tested |" in text
+    assert "| Apple MPS | Not supported or validated |" in text

@@ -4,11 +4,11 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "market-dynamics"
-version = "0.1.0"
+version = "1.0.0"
 description = "Leakage-aware multi-asset forecasting and shortcut-learning research pipeline."
 readme = "README.md"
 requires-python = ">=3.11"
-authors = [{ name = "Husaam Ateeq" }]
+authors = [{ name = "Muhammad Husaam Ateeq" }]
 dependencies = [
     "numpy>=1.26",
     "pandas>=2.1",
