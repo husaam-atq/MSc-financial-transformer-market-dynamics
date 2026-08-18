@@ -18,8 +18,7 @@ ROOT = Path(__file__).resolve().parents[1]
 TABLES = ROOT / "reports" / "tables"
 ASSETS = ROOT / "assets" / "readme"
 README = ROOT / "README.md"
-FINAL_DISSERTATION = ROOT / "reports" / "paper" / "Husaam_Ateeq_Dissertation_Final.pdf"
-FINAL_DISSERTATION_SHA256 = "3c96b16150f7a19f1560e054aae92d5b51e05e4614fac4d3f125391181eb58ca"
+SUBMITTED_DISSERTATION_SHA256 = "3c96b16150f7a19f1560e054aae92d5b51e05e4614fac4d3f125391181eb58ca"
 EXPECTED_ASSETS = (
     "graphical_abstract.svg",
     "graphical_abstract.png",
@@ -31,7 +30,7 @@ EXPECTED_CHOOSE_PATH_LINKS = (
     ("Examiner: key findings and methodology", "#key-finding"),
     ("Researcher: diagnostics and simulation", "#diagnostic-framework"),
     ("Developer: reproducibility and setup", "#reproducibility"),
-    ("Dissertation: final PDF", "reports/paper/Husaam_Ateeq_Dissertation_Final.pdf"),
+    ("Dissertation mapping", "#dissertation--repository-map"),
 )
 EXPECTED_KEY_LINKS = (
     ("Headline results", "#key-finding"),
@@ -41,7 +40,7 @@ EXPECTED_KEY_LINKS = (
     ("Reproducibility", "#reproducibility"),
     ("Repository structure", "#repository-structure"),
     ("Broader experimental programme", "#broader-experimental-programme"),
-    ("Dissertation artefacts", "#dissertation-artefacts"),
+    ("Dissertation", "#dissertation"),
     ("Dissertation map", "#dissertation--repository-map"),
     (
         "Frozen release",
@@ -63,7 +62,7 @@ EXPECTED_CONTENTS_LINKS = (
     ("Data access and reconstruction", "#data-access-and-reconstruction"),
     ("Broader experimental programme", "#broader-experimental-programme"),
     ("Scope and limitations", "#scope-and-limitations"),
-    ("Dissertation artefacts", "#dissertation-artefacts"),
+    ("Dissertation", "#dissertation"),
     ("Dissertation ↔ repository map", "#dissertation--repository-map"),
     ("Project status", "#project-status"),
     ("Citation", "#citation"),
@@ -294,14 +293,16 @@ def test_citation_metadata_is_prepared_for_release_without_fabricated_date() -> 
     }
 
 
-def test_final_dissertation_and_scoped_licensing_are_publicly_linked() -> None:
+def test_public_tree_excludes_manuscripts_and_retains_scoped_licensing() -> None:
     text = README.read_text(encoding="utf-8")
 
-    assert FINAL_DISSERTATION.is_file()
-    assert _sha256(FINAL_DISSERTATION) == FINAL_DISSERTATION_SHA256
-    assert not (ROOT / "reports" / "paper" / "draft_dissertation_paper_v4.pdf").exists()
+    paper_dir = ROOT / "reports" / "paper"
+    paper_files = tuple(path for path in paper_dir.rglob("*") if path.is_file())
+    assert paper_files == ()
     assert "Muhammad Husaam Ateeq CA" in text
-    assert "[Final dissertation PDF](reports/paper/Husaam_Ateeq_Dissertation_Final.pdf)" in text
+    assert f"`{SUBMITTED_DISSERTATION_SHA256}`" in text
+    assert "not redistributed through this public repository" in text
+    assert "reports/paper/" not in text
 
     software_licence = (ROOT / "LICENSE").read_text(encoding="utf-8")
     scope = (ROOT / "LICENSING.md").read_text(encoding="utf-8")
@@ -313,6 +314,7 @@ def test_final_dissertation_and_scoped_licensing_are_publicly_linked() -> None:
     assert not (ROOT / "LICENSE-DOCS.md").exists()
     normalized_scope = " ".join(scope.split())
     assert "submitted dissertation" in normalized_scope
+    assert "not distributed in the current public repository tree" in normalized_scope
     assert "provider-derived data" in normalized_scope
     assert "[BSD 3-Clause License](LICENSE)" in text
     assert "[CC BY 4.0](LICENSING.md#documentation-and-generated-figures)" in text

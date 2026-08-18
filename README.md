@@ -34,13 +34,13 @@ registered controlled simulation.*
 **Choose your path:** [Examiner: key findings and methodology](#key-finding) |
 [Researcher: diagnostics and simulation](#diagnostic-framework) |
 [Developer: reproducibility and setup](#reproducibility) |
-[Dissertation: final PDF](reports/paper/Husaam_Ateeq_Dissertation_Final.pdf)
+[Dissertation mapping](#dissertation--repository-map)
 
 **Key links:** [Headline results](#key-finding) | [Methodology](#methodology) |
 [Diagnostic framework](#diagnostic-framework) | [Controlled simulation](#controlled-simulation) |
 [Reproducibility](#reproducibility) | [Repository structure](#repository-structure) |
 [Broader experimental programme](#broader-experimental-programme) |
-[Dissertation artefacts](#dissertation-artefacts) |
+[Dissertation](#dissertation) |
 [Dissertation map](#dissertation--repository-map) |
 [Frozen release](https://github.com/husaam-atq/MSc-financial-transformer-market-dynamics/tree/dissertation-final)
 
@@ -59,7 +59,7 @@ registered controlled simulation.*
 - [Data access and reconstruction](#data-access-and-reconstruction)
 - [Broader experimental programme](#broader-experimental-programme)
 - [Scope and limitations](#scope-and-limitations)
-- [Dissertation artefacts](#dissertation-artefacts)
+- [Dissertation](#dissertation)
 - [Dissertation ↔ repository map](#dissertation--repository-map)
 - [Project status](#project-status)
 - [Citation](#citation)
@@ -317,12 +317,13 @@ and does not load raw market data, predictions or model checkpoints.
 <details>
 <summary><strong>Paper/reporting smoke build</strong></summary>
 
-Install the documentation extra and render the existing repository paper to an
-ignored verification directory:
+Install the documentation extra and render a locally supplied manuscript source
+to an ignored verification directory. The manuscript source is intentionally not
+included in the public repository; set `DISSERTATION_SOURCE` to its local path.
 
 ```powershell
 .venv\Scripts\python.exe -m pip install -e ".[docs]"
-.venv\Scripts\python.exe scripts/build_dissertation_paper.py --source reports/paper/draft_dissertation_paper_v4.md --output results/dissertation_build/verification/draft_dissertation_paper_v4.docx --artifacts results/dissertation_build/verification --edition v4
+.venv\Scripts\python.exe scripts/build_dissertation_paper.py --source $env:DISSERTATION_SOURCE --output results/dissertation_build/verification/dissertation.docx --artifacts results/dissertation_build/verification --edition v4
 ```
 
 PDF conversion requires a local office-suite installation and is intentionally
@@ -363,7 +364,6 @@ Key audit sources:
 assets/readme/             Reproducible public presentation graphics
 configs/                   Frozen study, model and universe specifications
 data/manifests/            Compact provider quality and inclusion manifests
-reports/paper/             Final dissertation PDF and retained development source
 reports/tables/            Frozen evidence, audits and compact result tables
 scripts/                   Reproduction, validation and reporting entry points
 src/market_dynamics/       Data, modelling, evaluation and reporting package
@@ -464,31 +464,30 @@ separate 306,174-row daily panel.
 
 ---
 
-## Dissertation artefacts
+## Dissertation
 
-The submitted dissertation PDF is the authoritative scholarly artefact:
+The final dissertation was submitted separately through the university
+submission system and is not redistributed through this public repository. This
+repository provides the implementation, tests, configurations, figures and
+compact evidence supporting the submitted study.
 
-- [Final dissertation PDF](reports/paper/Husaam_Ateeq_Dissertation_Final.pdf)
-- [V4 development Markdown](reports/paper/draft_dissertation_paper_v4.md)
-- [V4 development DOCX](reports/paper/draft_dissertation_paper_v4.docx)
-
-The editable V4 files are retained as development provenance; they are not a
-byte-identical source for the submitted PDF and do not supersede it.
+Submitted dissertation SHA-256:
+`3c96b16150f7a19f1560e054aae92d5b51e05e4614fac4d3f125391181eb58ca`
 
 The original frozen research release remains at the
 [`dissertation-final` tag](https://github.com/husaam-atq/MSc-financial-transformer-market-dynamics/tree/dissertation-final).
 
 ## Dissertation ↔ repository map
 
-The final PDF is authoritative. Public generators and compact evidence support
-the major figures and tables; raw provider data, predictions and checkpoints are
-not redistributed.
+The dissertation was submitted separately and is not redistributed here. Public
+generators and compact evidence support the major figures and tables; raw
+provider data, predictions and checkpoints are not redistributed.
 
 | Dissertation artefact | Repository source / generator | Frozen evidence / output |
 |---|---|---|
 | Figure 1: forecast design and chronological evaluation | [`build_dissertation_paper.py`](scripts/build_dissertation_paper.py) | [`phase6_config.yaml`](configs/phase6_config.yaml); [`authoritative specification`](reports/tables/ifddrp_transformer_authoritative_specification.md) |
 | Figure 2: pooled versus within-asset ROC-AUC | [`build_dissertation_paper.py`](scripts/build_dissertation_paper.py) | [`metric registry`](reports/tables/ifddrp_authoritative_metric_registry.csv); [`identity/dynamics decomposition`](reports/tables/ifddrp_identity_dynamic_information_decomposition.csv) |
-| Table 3 and Figure A1: cross-model ranking | [V4 development source](reports/paper/draft_dissertation_paper_v4.md); [`build_dissertation_paper.py`](scripts/build_dissertation_paper.py) | [`cross-model results`](reports/tables/prp1_fixed_cross_model_results.csv); [`temporal-skill gates`](reports/tables/prp1_fixed_cross_model_temporal_skill_gates.csv) |
+| Table III and Figure A1: cross-model ranking | [`build_dissertation_paper.py`](scripts/build_dissertation_paper.py) | [`cross-model results`](reports/tables/prp1_fixed_cross_model_results.csv); [`temporal-skill gates`](reports/tables/prp1_fixed_cross_model_temporal_skill_gates.csv) |
 | Figure 3: controlled simulation | [`build_dissertation_paper.py`](scripts/build_dissertation_paper.py) | [`simulation results`](reports/tables/prp1_study_a_independent_simulation_results.csv); [`gate inference`](reports/tables/prp1_study_a_independent_simulation_gate_inference.csv) |
 | Figure A2: identity and order diagnostics | [`build_dissertation_paper.py`](scripts/build_dissertation_paper.py) | [`identity swap`](reports/tables/phase6_identity_swap_results.csv); [`temporal order`](reports/tables/phase6_temporal_order_destruction.csv) |
 | Figures A3/A4: prevalence diagnostics | [`build_dissertation_paper.py`](scripts/build_dissertation_paper.py) | [`model-window endpoint labels`](src/market_dynamics/reporting/data/final_model_window_prevalence.csv) |
@@ -519,9 +518,10 @@ repository documentation and generated README figures are licensed under
 [CC BY 4.0](LICENSING.md#documentation-and-generated-figures) within the scope
 stated there.
 
-The submitted dissertation PDF, provider data, third-party content, trademarks,
-and separately attributed material are excluded from those grants unless their
-own terms say otherwise. See [`LICENSING.md`](LICENSING.md) for the exact scope.
+The university-submitted dissertation, provider data, third-party content,
+trademarks and separately attributed material are excluded from those grants
+unless their own terms say otherwise. See [`LICENSING.md`](LICENSING.md) for the
+exact scope.
 
 ---
 
