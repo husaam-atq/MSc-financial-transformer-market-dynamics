@@ -1,6 +1,7 @@
-"""Build the evidence-frozen MSc dissertation DOCX and publication figures.
+"""Build an evidence-frozen MSc dissertation DOCX and publication figures.
 
-The Markdown source is the editable scholarly record. This script applies the
+The caller supplies the Markdown scholarly record because the public repository
+does not redistribute the dissertation manuscript. This script applies the
 recorded A4, two-column paper conventions and embeds compact figures generated
 only from frozen summary tables or explicitly registered values.
 """
@@ -48,8 +49,7 @@ from market_dynamics.reporting.dissertation_figures import (  # noqa: E402
     load_simulation_figure_data,
 )
 
-DEFAULT_SOURCE = ROOT / "reports" / "paper" / "draft_dissertation_paper_v4.md"
-DEFAULT_OUTPUT = ROOT / "reports" / "paper" / "draft_dissertation_paper_v4.docx"
+DEFAULT_OUTPUT = ROOT / "results" / "dissertation_build" / "verification" / "dissertation.docx"
 DEFAULT_ARTIFACTS = ROOT / "results" / "dissertation_build" / "v4"
 SIMULATION_TABLE = ROOT / "reports" / "tables" / "prp1_study_a_independent_simulation_results.csv"
 IDENTITY_DECOMPOSITION_TABLE = ROOT / "reports" / "tables" / "ifddrp_identity_dynamic_information_decomposition.csv"
@@ -138,15 +138,15 @@ FIGURE_CAPTIONS_V3 = {
 }
 
 TABLE_CAPTIONS = {
-    1: "Table 1. Direct comparison with the closest methodological work.",
-    2: "Table 2. Direct numerical channels supplied at each of the 60 timesteps.",
-    3: "Table 3. Cross-model ranking on the corrected held-out test split.",
+    1: "Table I. Direct comparison with the closest methodological work.",
+    2: "Table II. Direct numerical channels supplied at each of the 60 timesteps.",
+    3: "Table III. Cross-model ranking on the corrected held-out test split.",
 }
 
 TABLE_CAPTIONS_V3 = {
     **TABLE_CAPTIONS,
-    3: "Table 3. Cross-model ranking on the corrected historical test split.",
-    4: "Table 4. Bounded recovery tests on the corrected historical test split.",
+    3: "Table III. Cross-model ranking on the corrected historical test split.",
+    4: "Table IV. Bounded recovery tests on the corrected historical test split.",
 }
 
 EQUATION_RENDER = {
@@ -166,7 +166,12 @@ EQUATION_RENDER_V2 = {
 
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("--source", type=Path, default=DEFAULT_SOURCE)
+    parser.add_argument(
+        "--source",
+        type=Path,
+        required=True,
+        help="Path to a locally supplied dissertation Markdown manuscript.",
+    )
     parser.add_argument("--output", type=Path, default=DEFAULT_OUTPUT)
     parser.add_argument("--artifacts", type=Path, default=DEFAULT_ARTIFACTS)
     parser.add_argument("--edition", choices=("v1", "v2", "v3", "v4"), help="Figure/layout edition; inferred from source when omitted")

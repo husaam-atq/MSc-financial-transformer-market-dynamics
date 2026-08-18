@@ -1,8 +1,9 @@
 # Licensing scope
 
-This repository contains software, original documentation, a submitted
-dissertation, compact research evidence, provider references and generated
-figures. They do not all share one licence.
+This repository contains software, original documentation, compact research
+evidence, provider references and generated figures. The university-submitted
+dissertation is not redistributed here. These materials do not all share one
+licence.
 
 ## Software
 
@@ -29,17 +30,17 @@ code is available at:
 https://creativecommons.org/licenses/by/4.0/legalcode.en
 
 This grant applies only to material for which Muhammad Husaam Ateeq holds the
-relevant rights. It does not apply to the submitted dissertation, editable paper
-artefacts, provider data, third-party material, trademarks, software code or the
-exclusions below.
+relevant rights. It does not apply to the submitted dissertation, any separately
+supplied manuscript artefacts, provider data, third-party material, trademarks,
+software code or the exclusions below.
 
 ## Exclusions and separate terms
 
 The repository licences do not grant rights to:
 
-- `reports/paper/Husaam_Ateeq_Dissertation_Final.pdf`, which is the submitted
-  dissertation and is not automatically relicensed under CC BY 4.0;
-- editable or historical dissertation materials under `reports/paper/`;
+- the university-submitted dissertation, which is not distributed in the current
+  public repository tree and is not relicensed under CC BY 4.0;
+- any separately supplied dissertation manuscript or editable paper artefact;
 - provider-derived data or third-party content, including material obtained
   through Yahoo Finance, FRED, Binance or other providers;
 - compact data manifests, universe files and frozen result CSVs, unless a

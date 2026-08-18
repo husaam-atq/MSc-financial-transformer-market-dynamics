@@ -33,3 +33,20 @@ def test_hygiene_allows_placeholders_and_environment_lookups() -> None:
     assert not _matches("API_KEY=your_key_here")
     assert not _matches('api_key = os.environ.get("FRED_API_KEY")')
     assert not _matches('secret = getenv("SERVICE_SECRET")')
+
+
+def test_hygiene_rejects_complete_manuscripts_only_in_the_public_paper_directory() -> None:
+    root = HYGIENE.PROJECT_ROOT
+
+    assert HYGIENE.is_tracked_dissertation_manuscript(
+        root / "reports" / "paper" / "final_dissertation.pdf"
+    )
+    assert HYGIENE.is_tracked_dissertation_manuscript(
+        root / "reports" / "paper" / "working_manuscript.docx"
+    )
+    assert HYGIENE.is_tracked_dissertation_manuscript(
+        root / "reports" / "paper" / "dissertation_manuscript.md"
+    )
+    assert not HYGIENE.is_tracked_dissertation_manuscript(
+        root / "reports" / "tables" / "ifddrp_final_scientific_audit.md"
+    )

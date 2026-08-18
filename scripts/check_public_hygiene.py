@@ -87,6 +87,18 @@ EXCLUDED_SUFFIXES = {
 }
 
 
+def is_tracked_dissertation_manuscript(path: Path) -> bool:
+    """Return whether a tracked public-paper file is a complete manuscript artefact."""
+    rel = to_posix_relative(path).lower()
+    if not rel.startswith("reports/paper/"):
+        return False
+    suffix = path.suffix.lower()
+    name = path.name.lower()
+    return suffix in {".pdf", ".docx"} or (
+        suffix == ".md" and ("dissertation" in name or "manuscript" in name)
+    )
+
+
 @dataclass(frozen=True)
 class Finding:
     path: Path
@@ -172,6 +184,16 @@ def main() -> int:
             print(to_posix_relative(path))
 
     findings: list[Finding] = []
+    for path in files:
+        if path.exists() and is_tracked_dissertation_manuscript(path):
+            findings.append(
+                Finding(
+                    path=path,
+                    line_number=0,
+                    term="tracked complete dissertation manuscript",
+                    line="Complete dissertation manuscripts are not distributed in the public tree.",
+                )
+            )
     for path in candidates:
         findings.extend(scan_file(path))
 
