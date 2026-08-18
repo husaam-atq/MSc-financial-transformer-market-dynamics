@@ -375,59 +375,40 @@ LICENSE / LICENSING.md     Scoped software, documentation and exclusion terms
 
 ## Data access and reconstruction
 
-Yahoo Finance supplied the historical daily OHLCV panel and FRED supplied seven
-macro/context series. Raw provider files are not redistributed. Public
-accessibility does not itself grant rights to download, cache, reuse or
-redistribute provider content. Researchers are responsible for checking current
-provider and original-source terms before acquiring data.
+### Data access and provider terms
+
+Raw market and macroeconomic provider data are not redistributed in this
+repository. The repository records the instrument universe, provider identifiers,
+feature definitions, configuration and research code needed to understand and,
+where permitted, reconstruct the study. Users wishing to reproduce the data should
+obtain the relevant series directly from the original provider or authorised
+source and are responsible for complying with the provider terms and obtaining any
+permissions required. Provider availability, licensing and terms may change over
+time.
+
+### Recorded inputs and reconstruction path
 
 The exact 80-instrument Yahoo symbol universe is recorded in the
 [`source_symbol_yahoo` column](configs/universes/daily_global_universe.csv). The
 separate [`crypto-hourly universe`](configs/universes/crypto_hourly_universe.csv),
-public [`quality and inclusion manifests`](data/manifests/) and the seven FRED IDs
-in [`phase2b_large_scale_config.yaml`](configs/phase2b_large_scale_config.yaml)
-record the remaining source identifiers. The historical acquisition path is
-documented by [`build_daily_global_panel.py`](scripts/build_daily_global_panel.py),
-the [`panel builder`](src/market_dynamics/data/panel_builders.py), the
+public [`quality and inclusion manifests`](data/manifests/) and the frozen
+[`phase2b_large_scale_config.yaml`](configs/phase2b_large_scale_config.yaml) record
+the remaining source identifiers. The seven macro/context series are
+[`DFF`](https://fred.stlouisfed.org/series/DFF),
+[`DGS2`](https://fred.stlouisfed.org/series/DGS2),
+[`DGS10`](https://fred.stlouisfed.org/series/DGS10),
+[`T10Y2Y`](https://fred.stlouisfed.org/series/T10Y2Y),
+[`VIXCLS`](https://fred.stlouisfed.org/series/VIXCLS),
+[`BAMLH0A0HYM2`](https://fred.stlouisfed.org/series/BAMLH0A0HYM2) and
+[`DTWEXBGS`](https://fred.stlouisfed.org/series/DTWEXBGS).
+
+The historical acquisition path is documented by
+[`build_daily_global_panel.py`](scripts/build_daily_global_panel.py), the
+[`panel builder`](src/market_dynamics/data/panel_builders.py), the
 [`Yahoo provider`](src/market_dynamics/data/providers/yfinance_provider.py) and the
-[`FRED provider`](src/market_dynamics/data/providers/fred_provider.py).
-
-| FRED ID | Current series label and source note | Reconstruction caution |
-|---|---|---|
-| [`DFF`](https://fred.stlouisfed.org/series/DFF) | Public Domain: Citation Requested; Federal Reserve Board | Prefer the original Federal Reserve source where its current terms permit. |
-| [`DGS2`](https://fred.stlouisfed.org/series/DGS2) | Public Domain: Citation Requested; Federal Reserve Board | Prefer the original Federal Reserve or Treasury source where permitted. |
-| [`DGS10`](https://fred.stlouisfed.org/series/DGS10) | Public Domain: Citation Requested; Federal Reserve Board | Prefer the original Federal Reserve or Treasury source where permitted. |
-| [`T10Y2Y`](https://fred.stlouisfed.org/series/T10Y2Y) | Copyrighted: Citation Required; calculated by the St. Louis Fed | An equivalent spread may be reconstructed from separately licensed 10-year and 2-year source series. |
-| [`VIXCLS`](https://fred.stlouisfed.org/series/VIXCLS) | Copyrighted: Citation Required; Cboe | Review Cboe permissions and attribution before use. |
-| [`BAMLH0A0HYM2`](https://fred.stlouisfed.org/series/BAMLH0A0HYM2) | Copyrighted: Pre-Approval Required; ICE Data Indices | ICE notes require prior approval for reproduction and now limit FRED history to three years. |
-| [`DTWEXBGS`](https://fred.stlouisfed.org/series/DTWEXBGS) | Public Domain: Citation Requested; Federal Reserve Board | Prefer the original Federal Reserve source where its current terms permit. |
-
-> **Current provider-terms notice (reviewed 18 August 2026):** the current
-> [FRED Services and API terms](https://fred.stlouisfed.org/legal/terms/)
-> expressly restrict using FRED content or the API for machine-learning
-> development or training and also restrict storing, caching and archiving FRED
-> content. Yahoo's current
-> [general terms](https://legal.yahoo.com/us/en/yahoo/terms/otos/index.html)
-> restrict automated collection without prior permission, and `yfinance` is an
-> unofficial client. The repository therefore documents the historical workflow
-> and identifiers but does not represent that current provider terms permit a
-> fresh automated reconstruction. Review the live terms and seek permission or
-> use an authorised original source where appropriate. This is a provider-terms
-> warning, not a legal conclusion or a retrospective determination about the
-> frozen study.
-
-The FRED panel used current-vintage downloads with a conservative availability
-lag rather than a complete point-in-time ALFRED reconstruction. Provider
-availability, terms, identifiers and historical coverage can change. In
-particular, `BAMLH0A0HYM2` no longer offers the original historical depth through
-FRED. This product uses the FRED® API but is not endorsed or certified by the
-Federal Reserve Bank of St. Louis.
-
-> [!NOTE]
-> Raw market/provider data, private predictions and model checkpoints are not
-> redistributed. Public reconstruction is limited to identifiers, acquisition
-> code, manifests, configurations and compact frozen evidence. Any fresh data
-> acquisition remains subject to current source terms and permissions.
+[`FRED provider`](src/market_dynamics/data/providers/fred_provider.py). The macro
+panel used current-vintage downloads with a conservative availability lag rather
+than a complete point-in-time ALFRED reconstruction.
 
 ---
 
@@ -461,12 +442,10 @@ processed **1,519,611 observations (approximately 1.52 million)**. This is not o
 unified dataset or one model-training sample. The daily Transformer used the
 separate 306,174-row daily panel.
 
-> [!NOTE]
-> The approximately 1.52 million observations are the sum of two distinct
-> experimental tracks: 306,174 daily observations and 1,213,437 hourly crypto
-> observations. They are not one unified dataset or one model-training sample.
-
 </details>
+
+> [!NOTE]
+> The approximately 1.52 million observations are the sum of two distinct experimental tracks: 306,174 daily observations and 1,213,437 hourly crypto observations. They are not one unified dataset or one model-training sample.
 
 ## Scope and limitations
 

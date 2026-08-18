@@ -506,28 +506,165 @@ def _make_social_preview(path: Path) -> None:
     ax.set_ylim(0, 1)
     ax.axis("off")
 
-    signal_x = np.linspace(0.62, 0.98, 500)
-    local_x = (signal_x - signal_x.min()) / np.ptp(signal_x)
-    signal_specs = (
-        (0.30, 0.035, BRIGHT_TEAL, 1.8),
-        (0.43, 0.055, BRIGHT_BLUE, 2.1),
-        (0.57, 0.075, BRIGHT_GOLD, 2.4),
-        (0.70, 0.045, BRIGHT_TEAL, 1.8),
+    ax.add_patch(
+        FancyBboxPatch(
+            (0.60, 0.14),
+            0.36,
+            0.72,
+            boxstyle="round,pad=0.012,rounding_size=0.018",
+            facecolor="#0B2530",
+            edgecolor="#1B4653",
+            linewidth=1.2,
+        )
     )
-    for baseline, amplitude, colour, linewidth in signal_specs:
-        signal_y = baseline + amplitude * np.sin(11 * local_x + baseline * 7)
-        signal_y += 0.018 * np.sin(31 * local_x + baseline * 5)
-        ax.plot(signal_x, signal_y, color=colour, alpha=0.62, linewidth=linewidth)
 
-    for x in np.linspace(0.65, 0.96, 9):
-        ax.plot((x, x), (0.20, 0.80), color=LIGHT_MID, alpha=0.07, linewidth=0.9)
-    for x, y, colour in (
-        (0.69, 0.39, BRIGHT_TEAL),
-        (0.77, 0.59, BRIGHT_GOLD),
-        (0.86, 0.48, BRIGHT_BLUE),
-        (0.94, 0.69, BRIGHT_TEAL),
-    ):
-        ax.scatter((x,), (y,), s=72, facecolor=NAVY, edgecolor=colour, linewidth=1.8, zorder=5)
+    chart_left, chart_right = 0.625, 0.765
+    chart_bottom, chart_top = 0.24, 0.76
+    for x in np.linspace(chart_left, chart_right, 6):
+        ax.plot(
+            (x, x),
+            (chart_bottom, chart_top),
+            color=LIGHT_MID,
+            alpha=0.09,
+            linewidth=0.8,
+        )
+    for y in np.linspace(chart_bottom, chart_top, 5):
+        ax.plot(
+            (chart_left, chart_right),
+            (y, y),
+            color=LIGHT_MID,
+            alpha=0.09,
+            linewidth=0.8,
+        )
+
+    time_points = np.linspace(chart_left, chart_right, 10)
+    trajectories = (
+        (
+            np.array([0.39, 0.43, 0.40, 0.47, 0.45, 0.52, 0.49, 0.57, 0.55, 0.62]),
+            BRIGHT_TEAL,
+            2.0,
+        ),
+        (
+            np.array([0.60, 0.56, 0.63, 0.59, 0.67, 0.64, 0.70, 0.66, 0.72, 0.69]),
+            BRIGHT_GOLD,
+            2.2,
+        ),
+        (
+            np.array([0.30, 0.34, 0.32, 0.38, 0.36, 0.42, 0.40, 0.45, 0.43, 0.49]),
+            BRIGHT_BLUE,
+            1.8,
+        ),
+    )
+    for values, colour, linewidth in trajectories:
+        ax.plot(
+            time_points,
+            values,
+            color=colour,
+            alpha=0.92,
+            linewidth=linewidth,
+            solid_capstyle="round",
+            solid_joinstyle="round",
+        )
+        ax.scatter(
+            (time_points[-1],),
+            (values[-1],),
+            s=24,
+            facecolor=NAVY,
+            edgecolor=colour,
+            linewidth=1.4,
+            zorder=5,
+        )
+
+    ax.add_patch(
+        FancyBboxPatch(
+            (0.718, 0.215),
+            0.057,
+            0.57,
+            boxstyle="round,pad=0.004,rounding_size=0.008",
+            facecolor=BRIGHT_TEAL,
+            edgecolor=BRIGHT_TEAL,
+            linewidth=1.0,
+            alpha=0.08,
+        )
+    )
+    _dark_arrow(ax, (0.775, 0.50), (0.805, 0.50), colour=BRIGHT_TEAL)
+
+    token_colours = (BRIGHT_TEAL, BRIGHT_BLUE, BRIGHT_GOLD, BRIGHT_BLUE, BRIGHT_TEAL)
+    token_y = np.linspace(0.30, 0.66, len(token_colours))
+    for index, (y, colour) in enumerate(zip(token_y, token_colours, strict=True)):
+        width = 0.032 + 0.004 * (index % 2)
+        ax.add_patch(
+            FancyBboxPatch(
+                (0.81, y),
+                width,
+                0.052,
+                boxstyle="round,pad=0.004,rounding_size=0.006",
+                facecolor=colour,
+                edgecolor=colour,
+                linewidth=0.8,
+                alpha=0.40,
+            )
+        )
+
+    attention_weights = np.array(
+        [
+            [0.95, 0.20, 0.35, 0.12, 0.45],
+            [0.18, 0.88, 0.26, 0.52, 0.16],
+            [0.42, 0.30, 0.92, 0.24, 0.58],
+            [0.14, 0.62, 0.28, 0.86, 0.34],
+            [0.50, 0.16, 0.56, 0.32, 0.90],
+        ]
+    )
+    matrix_left, matrix_bottom = 0.865, 0.31
+    cell_size, cell_gap = 0.012, 0.004
+    for row in range(attention_weights.shape[0]):
+        source_y = token_y[::-1][row] + 0.026
+        target_y = matrix_bottom + (4 - row) * (cell_size + cell_gap) + cell_size / 2
+        ax.plot(
+            (0.847, matrix_left - 0.006),
+            (source_y, target_y),
+            color=LIGHT_MID,
+            alpha=0.20,
+            linewidth=0.7,
+        )
+        for column in range(attention_weights.shape[1]):
+            weight = attention_weights[row, column]
+            colour = BRIGHT_GOLD if row == column else BRIGHT_BLUE
+            ax.add_patch(
+                FancyBboxPatch(
+                    (
+                        matrix_left + column * (cell_size + cell_gap),
+                        matrix_bottom + (4 - row) * (cell_size + cell_gap),
+                    ),
+                    cell_size,
+                    cell_size,
+                    boxstyle="round,pad=0.002,rounding_size=0.002",
+                    facecolor=colour,
+                    edgecolor="none",
+                    alpha=0.12 + 0.78 * weight,
+                )
+            )
+
+    output_x = 0.948
+    output_y = (0.40, 0.50, 0.60)
+    matrix_right = matrix_left + 4 * (cell_size + cell_gap) + cell_size
+    for y, colour in zip(output_y, (BRIGHT_TEAL, BRIGHT_GOLD, BRIGHT_BLUE), strict=True):
+        ax.plot(
+            (matrix_right + 0.002, output_x - 0.006),
+            (0.50, y),
+            color=colour,
+            alpha=0.42,
+            linewidth=1.0,
+        )
+        ax.scatter(
+            (output_x,),
+            (y,),
+            s=38,
+            facecolor=NAVY,
+            edgecolor=colour,
+            linewidth=1.5,
+            zorder=5,
+        )
 
     ax.add_patch(FancyBboxPatch((0.0, 0.0), 0.018, 1.0, boxstyle="square,pad=0", facecolor=BRIGHT_TEAL, edgecolor="none"))
     ax.text(

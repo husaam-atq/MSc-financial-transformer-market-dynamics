@@ -132,6 +132,12 @@ def test_tracked_readme_assets_exist_without_local_path_metadata() -> None:
 
 def test_readme_retains_generated_research_graphics_and_social_preview() -> None:
     text = README.read_text(encoding="utf-8")
+    generator = (
+        ROOT / "src" / "market_dynamics" / "reporting" / "readme_assets.py"
+    ).read_text(encoding="utf-8")
+    social_preview_source = generator.split("def _make_social_preview", maxsplit=1)[1].split(
+        "def _dark_box", maxsplit=1
+    )[0]
 
     for name in (
         "graphical_abstract.svg",
@@ -144,6 +150,10 @@ def test_readme_retains_generated_research_graphics_and_social_preview() -> None
     assert "Static heterogeneity vs planted ordered signal" in (
         ASSETS / "graphical_abstract.svg"
     ).read_text(encoding="utf-8")
+    assert "np.sin" not in social_preview_source
+    assert "attention_weights" in social_preview_source
+    for forbidden_metric in ("0.790", "0.824", "0.492", "ROC-AUC", "PR-AUC"):
+        assert forbidden_metric not in social_preview_source
 
 
 def test_readme_navigation_and_contents_match_current_sections() -> None:
@@ -183,7 +193,7 @@ def test_readme_uses_exactly_the_requested_callout_hierarchy() -> None:
 
     assert text.count("> [!IMPORTANT]") == 1
     assert text.count("> [!TIP]") == 1
-    assert text.count("> [!NOTE]") == 2
+    assert text.count("> [!NOTE]") == 1
     assert "> [!WARNING]" not in text
     assert "> [!CAUTION]" not in text
 
@@ -216,6 +226,13 @@ def test_readme_uses_correct_main_and_secondary_study_framing() -> None:
     assert "20 pairs" in secondary_inline
     assert "0.6015 ± 0.0049" in secondary_inline
     assert "<details>" in secondary
+    expected_note = (
+        "> [!NOTE]\n"
+        "> The approximately 1.52 million observations are the sum of two distinct "
+        "experimental tracks: 306,174 daily observations and 1,213,437 hourly crypto "
+        "observations. They are not one unified dataset or one model-training sample."
+    )
+    assert f"</details>\n\n{expected_note}" in secondary
     assert "1.57 million" not in text
     assert "1.74%" not in text
     assert "46.80%" not in text
@@ -301,10 +318,12 @@ def test_final_dissertation_and_scoped_licensing_are_publicly_linked() -> None:
     assert "[CC BY 4.0](LICENSING.md#documentation-and-generated-figures)" in text
 
 
-def test_data_access_documents_exact_identifiers_and_current_terms_boundary() -> None:
+def test_data_access_documents_exact_identifiers_and_concise_terms_boundary() -> None:
     text = README.read_text(encoding="utf-8")
 
     assert "## Data access and reconstruction" in text
+    assert "### Data access and provider terms" in text
+    assert "### Recorded inputs and reconstruction path" in text
     for series_id in (
         "DFF",
         "DGS2",
@@ -315,10 +334,17 @@ def test_data_access_documents_exact_identifiers_and_current_terms_boundary() ->
         "DTWEXBGS",
     ):
         assert f"https://fred.stlouisfed.org/series/{series_id}" in text
-    assert "https://fred.stlouisfed.org/legal/terms/" in text
-    assert "https://legal.yahoo.com/us/en/yahoo/terms/otos/index.html" in text
-    assert "does not represent that current provider terms permit" in text
-    assert "Raw market/provider data" in text
+    normalized = " ".join(text.split())
+    assert (
+        "Raw market and macroeconomic provider data are not redistributed in this "
+        "repository."
+    ) in normalized
+    assert "Users wishing to reproduce the data should obtain the relevant series" in normalized
+    assert "Provider availability, licensing and terms may change over time." in normalized
+    assert "https://fred.stlouisfed.org/legal/terms/" not in text
+    assert "https://legal.yahoo.com/us/en/yahoo/terms/otos/index.html" not in text
+    assert "Current provider-terms notice" not in text
+    assert "machine-learning restrictions" not in text
     assert "source_symbol_yahoo" in text
 
 
