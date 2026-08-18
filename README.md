@@ -471,6 +471,9 @@ submission system and is not redistributed through this public repository. This
 repository provides the implementation, tests, configurations, figures and
 compact evidence supporting the submitted study.
 
+Submitted dissertation SHA-256:
+`3c96b16150f7a19f1560e054aae92d5b51e05e4614fac4d3f125391181eb58ca`
+
 The original frozen research release remains at the
 [`dissertation-final` tag](https://github.com/husaam-atq/MSc-financial-transformer-market-dynamics/tree/dissertation-final).
 
